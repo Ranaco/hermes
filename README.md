@@ -1,40 +1,258 @@
-# Turborepo kitchen sink starter
+# Hermes KMS
 
-This Turborepo starter is maintained by the Turborepo core team.
+A secure, enterprise-grade Key Management System (KMS) built with modern web technologies. Hermes KMS provides a RESTful API for managing encryption keys, storing secrets, and handling cryptographic operations with multi-tier security controls.
 
-This example also shows how to use [Workspace Configurations](https://turborepo.com/docs/core-concepts/monorepos/configuring-workspaces).
+## Features
 
-## Using this example
+- **Multi-Tier Security**: Three levels of protection - authentication, vault-level passwords, and secret-level passwords
+- **Vault-Based Organization**: Organize secrets into secure vaults with granular access control
+- **Version Control**: Track changes to secrets with version history and commit messages
+- **Encryption Integration**: Seamless integration with HashiCorp Vault for robust encryption
+- **RESTful API**: Clean, documented API endpoints for all operations
+- **User Management**: JWT-based authentication with role-based access control
+- **Audit Logging**: Comprehensive logging for security and compliance
+- **TypeScript**: Full type safety throughout the codebase
+- **Monorepo Architecture**: Efficient development with shared packages using Turborepo
 
-Run the following command:
+## Tech Stack
 
-```sh
-npx create-turbo@latest -e kitchen-sink
+- **Backend**: Node.js, Express.js, TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Encryption**: HashiCorp Vault (Transit Engine)
+- **Authentication**: JWT with bcrypt password hashing
+- **Build Tool**: Turborepo for monorepo management
+- **Testing**: Jest for unit and integration tests
+- **Linting**: ESLint with custom configurations
+- **Code Quality**: Prettier for formatting
+
+## Architecture
+
+This project uses a monorepo structure with the following components:
+
+### Apps
+- `api`: Main Express.js REST API server
+- `hcv_engine`: HashiCorp Vault integration engine
+
+### Packages
+- `config-eslint`: Shared ESLint configurations
+- `config-typescript`: Shared TypeScript configurations
+- `error-handling`: Centralized error handling utilities
+- `jest-presets`: Jest testing configurations
+- `logger`: Isomorphic logging library
+- `prisma`: Database schema and client
+- `ui`: Shared UI components (if applicable)
+- `vault-client`: HashiCorp Vault client wrapper
+
+## Prerequisites
+
+- Node.js 18 or higher
+- Yarn package manager
+- Docker (for PostgreSQL and Vault services)
+- Git
+
+## Quick Start
+
+For detailed setup instructions, see [QUICKSTART.md](./QUICKSTART.md).
+
+### 1. Clone and Install
+
+```bash
+git clone <repository-url>
+cd hermes
+yarn install
 ```
 
-## What's inside?
+### 2. Start Services
 
-This Turborepo includes the following packages and apps:
+```bash
+# Start PostgreSQL
+docker run --name hermes-postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=hermes \
+  -p 5432:5432 \
+  -d postgres:15-alpine
 
-### Apps and Packages
+# Start HashiCorp Vault
+docker run --name hermes-vault \
+  -p 8200:8200 \
+  -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' \
+  -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' \
+  --cap-add=IPC_LOCK \
+  -d hashicorp/vault:latest
+```
 
-- `api`: an [Express](https://expressjs.com/) server
-- `storefront`: a [Next.js](https://nextjs.org/) app
-- `admin`: a [Vite](https://vitejs.dev/) single page app
-- `blog`: a [Remix](https://remix.run/) blog
-- `@hermes/eslint-config`: ESLint configurations used throughout the monorepo
-- `@hermes/jest-presets`: Jest configurations
-- `@hermes/logger`: isomorphic logger (a small wrapper around console.log)
-- `@hermes/ui`: a dummy React UI library (which contains `<CounterButton>` and `<Link>` components)
-- `@hermes/typescript-config`: tsconfig.json's used throughout the monorepo
+### 3. Configure Environment
 
-Each package and app is 100% [TypeScript](https://www.typescriptlang.org/).
+```bash
+cd apps/api
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-### Utilities
+### 4. Set Up Database
 
-This Turborepo has some additional tools already setup for you:
+```bash
+cd packages/prisma
+yarn prisma generate
+yarn prisma migrate dev --name init
+```
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Jest](https://jestjs.io) test runner for all things JavaScript
-- [Prettier](https://prettier.io) for code formatting
+### 5. Build and Start
+
+```bash
+cd ../../../
+yarn build
+cd apps/api
+yarn dev
+```
+
+The API will be available at `http://localhost:3000`.
+
+## API Overview
+
+### Authentication
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/refresh` - Refresh access token
+
+### Users
+- `GET /api/v1/users/me` - Get current user profile
+
+### Vaults
+- `POST /api/v1/vaults` - Create a new vault
+- `GET /api/v1/vaults` - List user vaults
+- `PUT /api/v1/vaults/:id` - Update vault
+- `DELETE /api/v1/vaults/:id` - Delete vault
+
+### Keys
+- `POST /api/v1/keys` - Create encryption key
+- `GET /api/v1/keys` - List keys
+- `POST /api/v1/keys/:id/encrypt` - Encrypt data
+- `POST /api/v1/keys/:id/decrypt` - Decrypt data
+
+### Secrets
+- `POST /api/v1/secrets` - Store a secret
+- `GET /api/v1/secrets` - List secrets (metadata only)
+- `POST /api/v1/secrets/:id/reveal` - Reveal secret value
+- `PUT /api/v1/secrets/:id` - Update secret (new version)
+- `GET /api/v1/secrets/:id/versions` - Get version history
+- `DELETE /api/v1/secrets/:id` - Delete secret
+
+### Health Checks
+- `GET /health` - Basic health check
+- `GET /status` - Detailed system status
+
+All endpoints require proper authentication via JWT tokens in the Authorization header.
+
+## Development
+
+### Available Scripts
+
+From the root directory:
+
+```bash
+yarn build        # Build all packages
+yarn dev          # Start development servers
+yarn lint         # Run linting
+yarn test         # Run tests
+yarn format       # Format code with Prettier
+yarn clean        # Clean build artifacts
+```
+
+### Project Structure
+
+```
+hermes/
+├── apps/
+│   ├── api/           # Main API server
+│   └── hcv_engine/    # Vault integration
+├── packages/
+│   ├── config-eslint/
+│   ├── config-typescript/
+│   ├── error-handling/
+│   ├── jest-presets/
+│   ├── logger/
+│   ├── prisma/
+│   ├── ui/
+│   └── vault-client/
+├── turbo.json         # Turborepo configuration
+├── package.json       # Root package file
+└── yarn.lock
+```
+
+### Database Management
+
+```bash
+cd packages/prisma
+yarn prisma studio     # Open Prisma Studio
+yarn prisma migrate dev # Run migrations
+yarn prisma db seed   # Seed database
+```
+
+## Testing
+
+```bash
+yarn test              # Run all tests
+yarn test --watch      # Run tests in watch mode
+```
+
+## Deployment
+
+For production deployment:
+
+1. Set `NODE_ENV=production`
+2. Use managed PostgreSQL and Vault services
+3. Configure strong JWT secrets
+4. Enable HTTPS with TLS
+5. Set up monitoring and logging
+6. Configure rate limiting
+7. Enable audit log retention
+
+## Security Considerations
+
+- All secrets are encrypted at rest using HashiCorp Vault
+- Passwords are hashed with bcrypt
+- JWT tokens have configurable expiration
+- Multi-tier access control prevents unauthorized access
+- Audit logs track all operations
+- Rate limiting protects against abuse
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
+
+### Code Style
+
+- Use TypeScript for all new code
+- Follow ESLint rules
+- Format code with Prettier
+- Write meaningful commit messages
+- Add JSDoc comments for public APIs
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For questions or issues:
+
+- Check the [QUICKSTART.md](./QUICKSTART.md) for common setup issues
+- Review the API documentation in the code
+- Open an issue on GitHub
+
+## Roadmap
+
+- [ ] API documentation with Swagger/OpenAPI
+- [ ] Multi-factor authentication (MFA)
+- [ ] Organization and team management
+- [ ] Secret sharing and permissions
+- [ ] Integration with cloud KMS providers
+- [ ] Web dashboard UI
+- [ ] Audit log retention policies
+- [ ] Backup and disaster recovery
