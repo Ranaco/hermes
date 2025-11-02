@@ -12,3 +12,9 @@ server/dist
 public/dist
 **/*.pem
 **/*.csr
+
+# Build outputs
+packages/*/dist/
+apps/*/dist/
+apps/*/build/
+packages/prisma/runtime/
