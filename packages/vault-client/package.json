@@ -1,0 +1,43 @@
+{
+  "name": "@hermes/vault-client",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/es/index.js",
+  "module": "./dist/es/index.js",
+  "types": "./dist/es/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/es/index.d.ts",
+        "default": "./dist/es/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "bunchee",
+    "dev": "bunchee --watch",
+    "lint": "eslint src/",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "node-vault": "^0.10.2",
+    "@hermes/logger": "*"
+  },
+  "devDependencies": {
+    "@hermes/eslint-config": "*",
+    "@hermes/typescript-config": "*",
+    "@types/node": "^22.15.3",
+    "@types/node-vault": "^0.9.1",
+    "bunchee": "^6.4.0",
+    "eslint": "^9.38.0",
+    "typescript": "5.8.2"
+  }
+}

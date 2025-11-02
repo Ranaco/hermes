@@ -1,0 +1,19 @@
+{
+  "name": "@hermes/prisma",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "browser": "index-browser.js",
+  "sideEffects": false,
+  "scripts": {
+    "migrate:generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate": "prisma migrate"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.16.2"
+  },
+  "devDependencies": {
+    "prisma": "^4.16.2"
+  }
+}

@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  hcv:
+    build:
+      context: ./apps/hcv_engine
+      dockerfile: Dockerfile
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_SKIP_VERIFY=true
+      - WEBHOOK_URL=https://webhook.site/dd5bb20f-13ab-4b12-ab6e-3257a3cff4d4
+      - CREDENTIALS_FILE=./vault_credentials.json
+      - WEBHOOK_SECRET=your-shared-secret-key-here

@@ -1,5 +1,5 @@
-import { CounterButton } from "@repo/ui/counter-button";
-import { Link } from "@repo/ui/link";
+import { CounterButton } from "@hermes/ui/counter-button";
+import { Link } from "@hermes/ui/link";
 
 export default function Index() {
   return (
