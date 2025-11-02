@@ -5,8 +5,7 @@
 
 import type { Request, Response } from 'express';
 import { asyncHandler, AuthenticationError, ValidationError, ErrorCode, NotFoundError, AuthorizationError } from '@hermes/error-handling';
-import getPrismaClient from '../services/prisma.service';
-import { createAuditLog } from '../services/audit.service';
+import { vaultWrapper } from '../wrappers/vault.wrapper';
 
 /**
  * Create a new vault
@@ -23,100 +22,18 @@ export const createVault = asyncHandler(async (req: Request, res: Response) => {
     throw new ValidationError(ErrorCode.VALIDATION_ERROR, 'Vault name is required');
   }
 
-  const prisma = getPrismaClient();
-
-  // Determine which organization to use
-  let targetOrganizationId = organizationId;
-
-  // If no organizationId provided, get user's first organization or create a default one
-  if (!targetOrganizationId) {
-    const userWithOrgs = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      include: {
-        organizations: {
-          include: {
-            organization: true,
-          },
-          take: 1,
-        },
-      },
-    });
-
-    if (userWithOrgs?.organizations?.[0]) {
-      targetOrganizationId = userWithOrgs.organizations[0].organizationId;
-    } else {
-      // Create a default organization for the user
-      const defaultOrg = await prisma.organization.create({
-        data: {
-          name: `${req.user.email}'s Organization`,
-          description: 'Default organization',
-          members: {
-            create: {
-              userId: req.user.id,
-              role: 'OWNER',
-            },
-          },
-        },
-      });
-      targetOrganizationId = defaultOrg.id;
-    }
-  }
-
-  // If organizationId was provided, verify user is a member
-  if (organizationId) {
-    const membership = await prisma.organizationMember.findFirst({
-      where: {
-        organizationId,
-        userId: req.user.id,
-      },
-    });
-
-    if (!membership) {
-      throw new AuthorizationError(ErrorCode.NOT_ORGANIZATION_MEMBER);
-    }
-  }
-
-  const vault = await prisma.vault.create({
-    data: {
-      name,
-      description,
-      organization: {
-        connect: { id: targetOrganizationId },
-      },
-      createdBy: {
-        connect: { id: req.user.id },
-      },
-      permissions: {
-        create: {
-          userId: req.user.id,
-          permissionLevel: 'ADMIN',
-        },
-      },
-    },
-    include: {
-      permissions: true,
-      organization: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  await createAuditLog({
-    userId: req.user.id,
-    action: 'CREATE',
-    resourceType: 'VAULT',
-    resourceId: vault.id,
-    details: { vaultName: name },
+  const result = await vaultWrapper.createVault(req.user.id, {
+    name,
+    description,
+    organizationId,
+  }, {
     ipAddress: req.ip || 'unknown',
     userAgent: req.headers['user-agent'] || 'unknown',
   });
 
   res.status(201).json({
     success: true,
-    data: { vault },
+    data: { vault: result.vault },
     message: 'Vault created successfully',
   });
 });
@@ -132,61 +49,13 @@ export const getVaults = asyncHandler(async (req: Request, res: Response) => {
 
   const { organizationId } = req.query;
 
-  const prisma = getPrismaClient();
-
-  const whereClause = {
-    OR: [
-      {
-        permissions: {
-          some: {
-            userId: req.user.id,
-            permissionLevel: {
-              in: ['VIEW' as const, 'USE' as const, 'EDIT' as const, 'ADMIN' as const],
-            },
-          },
-        },
-      },
-      {
-        permissions: {
-          some: {
-            group: {
-              members: {
-                some: {
-                  userId: req.user.id,
-                },
-              },
-            },
-            permissionLevel: {
-              in: ['VIEW' as const, 'USE' as const, 'EDIT' as const, 'ADMIN' as const],
-            },
-          },
-        },
-      },
-    ],
-    ...(organizationId ? { organizationId: organizationId as string } : {}),
-  };
-
-  const vaults = await prisma.vault.findMany({
-    where: whereClause,
-    include: {
-      organization: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      _count: {
-        select: {
-          keys: true,
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
+  const result = await vaultWrapper.getVaults(req.user.id, {
+    organizationId: organizationId as string,
   });
 
   res.json({
     success: true,
-    data: { vaults },
+    data: { vaults: result.vaults },
   });
 });
 
@@ -201,81 +70,11 @@ export const getVault = asyncHandler(async (req: Request, res: Response) => {
 
   const { id } = req.params;
 
-  const prisma = getPrismaClient();
-
-  const vault = await prisma.vault.findFirst({
-    where: {
-      id,
-      OR: [
-        {
-          permissions: {
-            some: {
-              userId: req.user.id,
-              permissionLevel: {
-                in: ['VIEW' as const, 'USE' as const, 'EDIT' as const, 'ADMIN' as const],
-              },
-            },
-          },
-        },
-        {
-          permissions: {
-            some: {
-              group: {
-                members: {
-                  some: {
-                    userId: req.user.id,
-                  },
-                },
-              },
-              permissionLevel: {
-                in: ['VIEW' as const, 'USE' as const, 'EDIT' as const, 'ADMIN' as const],
-              },
-            },
-          },
-        },
-      ],
-    },
-    include: {
-      organization: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      permissions: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              username: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
-          group: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      _count: {
-        select: {
-          keys: true,
-        },
-      },
-    },
-  });
-
-  if (!vault) {
-    throw new NotFoundError(ErrorCode.VAULT_NOT_FOUND);
-  }
+  const result = await vaultWrapper.getVault(req.user.id, id);
 
   res.json({
     success: true,
-    data: { vault },
+    data: { vault: result.vault },
   });
 });
 
@@ -291,77 +90,17 @@ export const updateVault = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, description } = req.body;
 
-  const prisma = getPrismaClient();
-
-  // Check if user has write permission (USE, EDIT, or ADMIN level)
-  const vault = await prisma.vault.findFirst({
-    where: {
-      id,
-      OR: [
-        {
-          permissions: {
-            some: {
-              userId: req.user.id,
-              permissionLevel: {
-                in: ['USE' as const, 'EDIT' as const, 'ADMIN' as const],
-              },
-            },
-          },
-        },
-        {
-          permissions: {
-            some: {
-              group: {
-                members: {
-                  some: {
-                    userId: req.user.id,
-                  },
-                },
-              },
-              permissionLevel: {
-                in: ['USE' as const, 'EDIT' as const, 'ADMIN' as const],
-              },
-            },
-          },
-        },
-      ],
-    },
-  });
-
-  if (!vault) {
-    throw new NotFoundError(ErrorCode.VAULT_NOT_FOUND, 'Vault not found or insufficient permissions');
-  }
-
-  const updateData: Partial<{ name: string; description: string | null }> = {};
-  if (name !== undefined) updateData.name = name;
-  if (description !== undefined) updateData.description = description;
-
-  const updatedVault = await prisma.vault.update({
-    where: { id },
-    data: updateData,
-    include: {
-      organization: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  await createAuditLog({
-    userId: req.user.id,
-    action: 'UPDATE',
-    resourceType: 'VAULT',
-    resourceId: id,
+  const result = await vaultWrapper.updateVault(req.user.id, id, {
+    name,
+    description,
+  }, {
     ipAddress: req.ip || 'unknown',
     userAgent: req.headers['user-agent'] || 'unknown',
-    details: { changes: updateData },
   });
 
   res.json({
     success: true,
-    data: { vault: updatedVault },
+    data: { vault: result.vault },
     message: 'Vault updated successfully',
   });
 });
@@ -377,63 +116,9 @@ export const deleteVault = asyncHandler(async (req: Request, res: Response) => {
 
   const { id } = req.params;
 
-  const prisma = getPrismaClient();
-
-  // Check if user has delete permission (ADMIN level required)
-  const vault = await prisma.vault.findFirst({
-    where: {
-      id,
-      OR: [
-        {
-          permissions: {
-            some: {
-              userId: req.user.id,
-              permissionLevel: 'ADMIN' as const,
-            },
-          },
-        },
-        {
-          permissions: {
-            some: {
-              group: {
-                members: {
-                  some: {
-                    userId: req.user.id,
-                  },
-                },
-              },
-              permissionLevel: 'ADMIN' as const,
-            },
-          },
-        },
-      ],
-    },
-    include: {
-      _count: {
-        select: {
-          keys: true,
-        },
-      },
-    },
-  });
-
-  if (!vault) {
-    throw new NotFoundError(ErrorCode.VAULT_NOT_FOUND, 'Vault not found or insufficient permissions');
-  }
-
-  // Delete vault (cascade will handle keys and permissions)
-  await prisma.vault.delete({
-    where: { id },
-  });
-
-  await createAuditLog({
-    userId: req.user.id,
-    action: 'DELETE',
-    resourceType: 'VAULT',
-    resourceId: id,
+  await vaultWrapper.deleteVault(req.user.id, id, {
     ipAddress: req.ip || 'unknown',
     userAgent: req.headers['user-agent'] || 'unknown',
-    details: { vaultName: vault.name },
   });
 
   res.json({
@@ -458,94 +143,17 @@ export const grantUserPermission = asyncHandler(async (req: Request, res: Respon
     throw new ValidationError(ErrorCode.VALIDATION_ERROR, 'User ID and permission level are required');
   }
 
-  const prisma = getPrismaClient();
-
-  // Check if current user has permission to manage permissions (ADMIN level)
-  const vault = await prisma.vault.findFirst({
-    where: {
-      id,
-      OR: [
-        {
-          permissions: {
-            some: {
-              userId: req.user.id,
-              permissionLevel: 'ADMIN' as const,
-            },
-          },
-        },
-        {
-          permissions: {
-            some: {
-              group: {
-                members: {
-                  some: {
-                    userId: req.user.id,
-                  },
-                },
-              },
-              permissionLevel: 'ADMIN' as const,
-            },
-          },
-        },
-      ],
-    },
-  });
-
-  if (!vault) {
-    throw new NotFoundError(ErrorCode.VAULT_NOT_FOUND, 'Vault not found or insufficient permissions');
-  }
-
-  // Check if target user exists
-  const targetUser = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-
-  if (!targetUser) {
-    throw new NotFoundError(ErrorCode.USER_NOT_FOUND);
-  }
-
-  // Create or update permission
-  const permission = await prisma.vaultPermission.upsert({
-    where: {
-      userId_vaultId: {
-        vaultId: id,
-        userId,
-      },
-    },
-    create: {
-      vaultId: id,
-      userId,
-      permissionLevel,
-    },
-    update: {
-      permissionLevel,
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-    },
-  });
-
-  await createAuditLog({
-    userId: req.user.id,
-    action: 'UPDATE',
-    resourceType: 'VAULT',
-    resourceId: id,
+  const result = await vaultWrapper.grantUserPermission(req.user.id, id, {
+    targetUserId: userId,
+    permissionLevel,
+  }, {
     ipAddress: req.ip || 'unknown',
     userAgent: req.headers['user-agent'] || 'unknown',
-    details: { targetUserId: userId, permissionLevel },
   });
 
   res.status(201).json({
     success: true,
-    data: { permission },
+    data: { permission: result.permission },
     message: 'Permission granted successfully',
   });
 });
@@ -561,47 +169,9 @@ export const revokeUserPermission = asyncHandler(async (req: Request, res: Respo
 
   const { id, userId } = req.params;
 
-  const prisma = getPrismaClient();
-
-  // Check if current user has permission to manage permissions (ADMIN level)
-  const vault = await prisma.vault.findFirst({
-    where: {
-      id,
-      OR: [
-        {
-          permissions: {
-            some: {
-              userId: req.user.id,
-              permissionLevel: 'ADMIN' as const,
-            },
-          },
-        },
-      ],
-    },
-  });
-
-  if (!vault) {
-    throw new NotFoundError(ErrorCode.VAULT_NOT_FOUND, 'Vault not found or insufficient permissions');
-  }
-
-  // Delete permission
-  await prisma.vaultPermission.delete({
-    where: {
-      userId_vaultId: {
-        vaultId: id,
-        userId,
-      },
-    },
-  });
-
-  await createAuditLog({
-    userId: req.user.id,
-    action: 'DELETE',
-    resourceType: 'VAULT',
-    resourceId: id,
+  await vaultWrapper.revokeUserPermission(req.user.id, id, userId, {
     ipAddress: req.ip || 'unknown',
     userAgent: req.headers['user-agent'] || 'unknown',
-    details: { targetUserId: userId },
   });
 
   res.json({
