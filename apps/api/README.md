@@ -96,7 +96,7 @@ docker run --name hermes-vault \
   -p 8200:8200 \
   -d vault:latest
 
-# Enable Transit Engine
+# Enable Transit Engine (Deprecated, enabled in the setup script automatically)
 export VAULT_ADDR='http://localhost:8200'
 export VAULT_TOKEN='myroot'
 
