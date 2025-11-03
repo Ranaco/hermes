@@ -1,4 +1,4 @@
-import { ErrorCode, ErrorMessages, HttpStatusCodes } from './error-codes';
+import { ErrorCode, ErrorMessages, HttpStatusCodes } from "./error-codes";
 
 /**
  * Base Application Error
@@ -14,10 +14,10 @@ export class AppError extends Error {
     code: ErrorCode,
     message?: string,
     details?: unknown,
-    isOperational: boolean = true
+    isOperational: boolean = true,
   ) {
     super(message || ErrorMessages[code]);
-    
+
     this.code = code;
     this.statusCode = HttpStatusCodes[code] || 500;
     this.isOperational = isOperational;
@@ -25,8 +25,7 @@ export class AppError extends Error {
     this.timestamp = new Date();
 
     Error.captureStackTrace(this, this.constructor);
-    
-    // Set the prototype explicitly for TypeScript
+
     Object.setPrototypeOf(this, AppError.prototype);
   }
 
@@ -37,7 +36,7 @@ export class AppError extends Error {
       statusCode: this.statusCode,
       details: this.details,
       timestamp: this.timestamp,
-      ...(process.env.NODE_ENV !== 'production' && { stack: this.stack }),
+      ...(process.env.NODE_ENV !== "production" && { stack: this.stack }),
     };
   }
 }
@@ -46,7 +45,11 @@ export class AppError extends Error {
  * Authentication Error
  */
 export class AuthenticationError extends AppError {
-  constructor(code: ErrorCode = ErrorCode.UNAUTHORIZED, message?: string, details?: unknown) {
+  constructor(
+    code: ErrorCode = ErrorCode.UNAUTHORIZED,
+    message?: string,
+    details?: unknown,
+  ) {
     super(code, message, details);
     Object.setPrototypeOf(this, AuthenticationError.prototype);
   }
@@ -59,7 +62,7 @@ export class AuthorizationError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.INSUFFICIENT_PERMISSIONS,
     message?: string,
-    details?: unknown
+    details?: unknown,
   ) {
     super(code, message, details);
     Object.setPrototypeOf(this, AuthorizationError.prototype);
@@ -73,7 +76,7 @@ export class ForbiddenError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.INSUFFICIENT_PERMISSIONS,
     message?: string,
-    details?: unknown
+    details?: unknown,
   ) {
     super(code, message, details);
     Object.setPrototypeOf(this, ForbiddenError.prototype);
@@ -87,7 +90,7 @@ export class ValidationError extends AppError {
   constructor(
     message?: string,
     details?: unknown,
-    code: ErrorCode = ErrorCode.VALIDATION_ERROR
+    code: ErrorCode = ErrorCode.VALIDATION_ERROR,
   ) {
     super(code, message, details);
     Object.setPrototypeOf(this, ValidationError.prototype);
@@ -99,8 +102,10 @@ export class ValidationError extends AppError {
  */
 export class NotFoundError extends AppError {
   constructor(code: ErrorCode | string, message?: string, details?: unknown) {
-    // If code is a string, treat it as resource name for backward compatibility
-    if (typeof code === 'string' && !Object.values(ErrorCode).includes(code as ErrorCode)) {
+    if (
+      typeof code === "string" &&
+      !Object.values(ErrorCode).includes(code as ErrorCode)
+    ) {
       super(ErrorCode.KEY_NOT_FOUND, `${code} not found`, message);
     } else {
       super(code as ErrorCode, message, details);
@@ -143,7 +148,11 @@ export class RateLimitError extends AppError {
  * Vault Service Error
  */
 export class VaultError extends AppError {
-  constructor(code: ErrorCode = ErrorCode.VAULT_TRANSIT_ERROR, message?: string, details?: unknown) {
+  constructor(
+    code: ErrorCode = ErrorCode.VAULT_TRANSIT_ERROR,
+    message?: string,
+    details?: unknown,
+  ) {
     super(code, message, details);
     Object.setPrototypeOf(this, VaultError.prototype);
   }
@@ -168,7 +177,7 @@ export class ExternalServiceError extends AppError {
       ErrorCode.EXTERNAL_SERVICE_ERROR,
       message || `${service} service error`,
       details,
-      false
+      false,
     );
     Object.setPrototypeOf(this, ExternalServiceError.prototype);
   }

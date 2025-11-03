@@ -1,0 +1,558 @@
+{
+  "$schema": "https://www.krakend.io/schema/v2.12/krakend.json",
+  "version": 3,
+  "port": 8080,
+  "host": ["http://0.0.0.0"],
+  "endpoints": [
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/health",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/status",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/status",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/info",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/info",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/register",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/register",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/login",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/login",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/refresh",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/refresh",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/logout",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/logout",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/mfa/setup",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/mfa/setup",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/mfa/enable",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/mfa/enable",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/mfa/disable",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/mfa/disable",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/devices",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/devices",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/devices/{id}",
+      "method": "DELETE",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/auth/devices/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users/password/reset-request",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/password/reset-request",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users/password/reset",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/password/reset",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users/verify-email",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/verify-email",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users/me",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/me",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users/me",
+      "method": "PATCH",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/me",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users/me/password",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/me/password",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users/resend-verification",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/resend-verification",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users/me",
+      "method": "DELETE",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/me",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/organizations",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/organizations",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/organizations",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/organizations",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/organizations/{id}",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/organizations/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/organizations/{id}",
+      "method": "PATCH",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/organizations/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/organizations/{id}",
+      "method": "DELETE",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/organizations/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/organizations/{id}/invitations",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/organizations/{id}/invitations",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/organizations/{id}/members/{userId}",
+      "method": "DELETE",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/organizations/{id}/members/{userId}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/organizations/{id}/members/{userId}",
+      "method": "PATCH",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/organizations/{id}/members/{userId}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/vaults",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/vaults",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/vaults",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/vaults",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/vaults/{id}",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/vaults/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/vaults/{id}",
+      "method": "PATCH",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/vaults/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/vaults/{id}",
+      "method": "DELETE",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/vaults/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/vaults/{id}/permissions/users",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/vaults/{id}/permissions/users",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/vaults/{id}/permissions/users/{userId}",
+      "method": "DELETE",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/vaults/{id}/permissions/users/{userId}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys/{id}",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys/{id}/rotate",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys/{id}/rotate",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys/{id}",
+      "method": "DELETE",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys/{id}/encrypt",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys/{id}/encrypt",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys/{id}/decrypt",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys/{id}/decrypt",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys/{id}/encrypt/batch",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys/{id}/encrypt/batch",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/keys/{id}/decrypt/batch",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/keys/{id}/decrypt/batch",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/secrets",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/secrets",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/secrets",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/secrets",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/secrets/{id}/reveal",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/secrets/{id}/reveal",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/secrets/{id}",
+      "method": "PUT",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/secrets/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/secrets/{id}",
+      "method": "DELETE",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/secrets/{id}",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/secrets/{id}/versions",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/secrets/{id}/versions",
+          "host": ["http://192.168.1.8:5001"],
+          "encoding": "json"
+        }
+      ]
+    }
+  ]
+}

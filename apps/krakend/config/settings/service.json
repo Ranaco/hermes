@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "port": 8080,
+  "host": ["http://0.0.0.0"],
+  "timeout": "3000ms",
+  "read_timeout": "3000ms",
+  "write_timeout": "3000ms",
+  "idle_timeout": "3000ms",
+  "read_header_timeout": "3000ms"
+}

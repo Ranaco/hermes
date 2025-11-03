@@ -1,0 +1,282 @@
+{
+  "auth": {
+    "public": [
+      {
+        "endpoint": "/api/v1/auth/register",
+        "method": "POST",
+        "backend": "/api/v1/auth/register"
+      },
+      {
+        "endpoint": "/api/v1/auth/login",
+        "method": "POST",
+        "backend": "/api/v1/auth/login"
+      },
+      {
+        "endpoint": "/api/v1/auth/refresh",
+        "method": "POST",
+        "backend": "/api/v1/auth/refresh"
+      }
+    ],
+    "protected": [
+      {
+        "endpoint": "/api/v1/auth/logout",
+        "method": "POST",
+        "backend": "/api/v1/auth/logout"
+      },
+      {
+        "endpoint": "/api/v1/auth/mfa/setup",
+        "method": "POST",
+        "backend": "/api/v1/auth/mfa/setup"
+      },
+      {
+        "endpoint": "/api/v1/auth/mfa/enable",
+        "method": "POST",
+        "backend": "/api/v1/auth/mfa/enable"
+      },
+      {
+        "endpoint": "/api/v1/auth/mfa/disable",
+        "method": "POST",
+        "backend": "/api/v1/auth/mfa/disable"
+      },
+      {
+        "endpoint": "/api/v1/auth/devices",
+        "method": "GET",
+        "backend": "/api/v1/auth/devices"
+      },
+      {
+        "endpoint": "/api/v1/auth/devices/{id}",
+        "method": "DELETE",
+        "backend": "/api/v1/auth/devices/{id}"
+      }
+    ]
+  },
+  "users": {
+    "public": [
+      {
+        "endpoint": "/api/v1/users/password/reset-request",
+        "method": "POST",
+        "backend": "/api/v1/users/password/reset-request"
+      },
+      {
+        "endpoint": "/api/v1/users/password/reset",
+        "method": "POST",
+        "backend": "/api/v1/users/password/reset"
+      },
+      {
+        "endpoint": "/api/v1/users/verify-email",
+        "method": "POST",
+        "backend": "/api/v1/users/verify-email"
+      }
+    ],
+    "protected": [
+      {
+        "endpoint": "/api/v1/users/me",
+        "method": "GET",
+        "backend": "/api/v1/users/me"
+      },
+      {
+        "endpoint": "/api/v1/users/me",
+        "method": "PATCH",
+        "backend": "/api/v1/users/me"
+      },
+      {
+        "endpoint": "/api/v1/users/me/password",
+        "method": "POST",
+        "backend": "/api/v1/users/me/password"
+      },
+      {
+        "endpoint": "/api/v1/users/resend-verification",
+        "method": "POST",
+        "backend": "/api/v1/users/resend-verification"
+      },
+      {
+        "endpoint": "/api/v1/users/me",
+        "method": "DELETE",
+        "backend": "/api/v1/users/me"
+      }
+    ]
+  },
+  "organizations": {
+    "protected": [
+      {
+        "endpoint": "/api/v1/organizations",
+        "method": "POST",
+        "backend": "/api/v1/organizations"
+      },
+      {
+        "endpoint": "/api/v1/organizations",
+        "method": "GET",
+        "backend": "/api/v1/organizations"
+      },
+      {
+        "endpoint": "/api/v1/organizations/{id}",
+        "method": "GET",
+        "backend": "/api/v1/organizations/{id}"
+      },
+      {
+        "endpoint": "/api/v1/organizations/{id}",
+        "method": "PATCH",
+        "backend": "/api/v1/organizations/{id}"
+      },
+      {
+        "endpoint": "/api/v1/organizations/{id}",
+        "method": "DELETE",
+        "backend": "/api/v1/organizations/{id}"
+      },
+      {
+        "endpoint": "/api/v1/organizations/{id}/invitations",
+        "method": "POST",
+        "backend": "/api/v1/organizations/{id}/invitations"
+      },
+      {
+        "endpoint": "/api/v1/organizations/{id}/members/{userId}",
+        "method": "DELETE",
+        "backend": "/api/v1/organizations/{id}/members/{userId}"
+      },
+      {
+        "endpoint": "/api/v1/organizations/{id}/members/{userId}",
+        "method": "PATCH",
+        "backend": "/api/v1/organizations/{id}/members/{userId}"
+      }
+    ]
+  },
+  "vaults": {
+    "protected": [
+      {
+        "endpoint": "/api/v1/vaults",
+        "method": "POST",
+        "backend": "/api/v1/vaults"
+      },
+      {
+        "endpoint": "/api/v1/vaults",
+        "method": "GET",
+        "backend": "/api/v1/vaults"
+      },
+      {
+        "endpoint": "/api/v1/vaults/{id}",
+        "method": "GET",
+        "backend": "/api/v1/vaults/{id}"
+      },
+      {
+        "endpoint": "/api/v1/vaults/{id}",
+        "method": "PATCH",
+        "backend": "/api/v1/vaults/{id}"
+      },
+      {
+        "endpoint": "/api/v1/vaults/{id}",
+        "method": "DELETE",
+        "backend": "/api/v1/vaults/{id}"
+      },
+      {
+        "endpoint": "/api/v1/vaults/{id}/permissions/users",
+        "method": "POST",
+        "backend": "/api/v1/vaults/{id}/permissions/users"
+      },
+      {
+        "endpoint": "/api/v1/vaults/{id}/permissions/users/{userId}",
+        "method": "DELETE",
+        "backend": "/api/v1/vaults/{id}/permissions/users/{userId}"
+      }
+    ]
+  },
+  "keys": {
+    "protected": [
+      {
+        "endpoint": "/api/v1/keys",
+        "method": "POST",
+        "backend": "/api/v1/keys"
+      },
+      {
+        "endpoint": "/api/v1/keys",
+        "method": "GET",
+        "backend": "/api/v1/keys"
+      },
+      {
+        "endpoint": "/api/v1/keys/{id}",
+        "method": "GET",
+        "backend": "/api/v1/keys/{id}"
+      },
+      {
+        "endpoint": "/api/v1/keys/{id}/rotate",
+        "method": "POST",
+        "backend": "/api/v1/keys/{id}/rotate"
+      },
+      {
+        "endpoint": "/api/v1/keys/{id}",
+        "method": "DELETE",
+        "backend": "/api/v1/keys/{id}"
+      },
+      {
+        "endpoint": "/api/v1/keys/{id}/encrypt",
+        "method": "POST",
+        "backend": "/api/v1/keys/{id}/encrypt"
+      },
+      {
+        "endpoint": "/api/v1/keys/{id}/decrypt",
+        "method": "POST",
+        "backend": "/api/v1/keys/{id}/decrypt"
+      },
+      {
+        "endpoint": "/api/v1/keys/{id}/encrypt/batch",
+        "method": "POST",
+        "backend": "/api/v1/keys/{id}/encrypt/batch"
+      },
+      {
+        "endpoint": "/api/v1/keys/{id}/decrypt/batch",
+        "method": "POST",
+        "backend": "/api/v1/keys/{id}/decrypt/batch"
+      }
+    ]
+  },
+  "secrets": {
+    "protected": [
+      {
+        "endpoint": "/api/v1/secrets",
+        "method": "POST",
+        "backend": "/api/v1/secrets"
+      },
+      {
+        "endpoint": "/api/v1/secrets",
+        "method": "GET",
+        "backend": "/api/v1/secrets"
+      },
+      {
+        "endpoint": "/api/v1/secrets/{id}/reveal",
+        "method": "POST",
+        "backend": "/api/v1/secrets/{id}/reveal"
+      },
+      {
+        "endpoint": "/api/v1/secrets/{id}",
+        "method": "PUT",
+        "backend": "/api/v1/secrets/{id}"
+      },
+      {
+        "endpoint": "/api/v1/secrets/{id}",
+        "method": "DELETE",
+        "backend": "/api/v1/secrets/{id}"
+      },
+      {
+        "endpoint": "/api/v1/secrets/{id}/versions",
+        "method": "GET",
+        "backend": "/api/v1/secrets/{id}/versions"
+      }
+    ]
+  },
+  "health": [
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "backend": "/health"
+    },
+    {
+      "endpoint": "/status",
+      "method": "GET",
+      "backend": "/status"
+    },
+    {
+      "endpoint": "/api/v1/info",
+      "method": "GET",
+      "backend": "/api/v1/info"
+    }
+  ]
+}
