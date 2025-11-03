@@ -10,7 +10,7 @@ NC='\033[0m'
 
 # Configuration
 VAULT_ADDR="${VAULT_ADDR:-https://127.0.0.1:8200}"
-WEBHOOK_URL="${WEBHOOK_URL:-https://webhook.site/dd5bb20f-13ab-4b12-ab6e-3257a3cff4d4}"
+WEBHOOK_URL="${WEBHOOK_URL:-https://webhook.site/bb2a265c-f628-49c2-853e-607085caebaf}"
 CREDENTIALS_FILE="${CREDENTIALS_FILE:-./vault_credentials.json}"
 VAULT_SKIP_VERIFY="${VAULT_SKIP_VERIFY:-true}"
 WEBHOOK_SECRET="${WEBHOOK_SECRET:-your-shared-secret-key-here}"
@@ -36,7 +36,6 @@ fi
 
 echo -e "${GREEN}✓ Vault initialized successfully${NC}"
 
-# Save credentials locally (temporary - will be cleaned up)
 echo -e "${YELLOW}Saving temporary credentials...${NC}"
 cat > "$CREDENTIALS_FILE" << EOF
 {

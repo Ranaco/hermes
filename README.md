@@ -106,7 +106,7 @@ cd apps/api
 yarn dev
 ```
 
-The API will be available at `http://localhost:3000`.
+The API will be available at `http://localhost:5001`.
 
 ## API Overview
 

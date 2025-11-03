@@ -64,7 +64,7 @@ Edit `.env` with these values:
 ```env
 # Application
 NODE_ENV=development
-PORT=3000
+PORT=5001
 API_PREFIX=/api/v1
 
 # Database
@@ -88,7 +88,7 @@ MAX_LOGIN_ATTEMPTS=5
 LOCKOUT_DURATION=900000
 
 # CORS
-CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+CORS_ORIGINS=http://localhost5001,http://localhost:5173
 
 # Logging
 LOG_LEVEL=debug
@@ -128,7 +128,7 @@ yarn dev
 You should see:
 
 ```
-🚀 Server running on port 3000
+🚀 Server running on port 5001
 📊 Environment: development
 🔗 API Prefix: /api/v1
 ```
@@ -138,7 +138,7 @@ You should see:
 ### Health Check
 
 ```powershell
-curl http://localhost:3000/health
+curl http://localhost5001/health
 ```
 
 Response:
@@ -152,7 +152,7 @@ Response:
 ### Status Check
 
 ```powershell
-curl http://localhost:3000/status
+curl http://localhost5001/status
 ```
 
 Response:
@@ -170,7 +170,7 @@ Response:
 ### Register a User
 
 ```powershell
-curl -X POST http://localhost:3000/api/v1/auth/register `
+curl -X POST http://localhost5001/api/v1/auth/register `
   -H "Content-Type: application/json" `
   -d '{
     \"email\": \"admin@hermes.local\",
@@ -202,7 +202,7 @@ Response:
 ### Login
 
 ```powershell
-curl -X POST http://localhost:3000/api/v1/auth/login `
+curl -X POST http://localhost5001/api/v1/auth/login `
   -H "Content-Type: application/json" `
   -d '{
     \"email\": \"admin@hermes.local\",
@@ -215,14 +215,14 @@ curl -X POST http://localhost:3000/api/v1/auth/login `
 ```powershell
 $TOKEN="<your-access-token-from-login>"
 
-curl http://localhost:3000/api/v1/users/me `
+curl http://localhost5001/api/v1/users/me `
   -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Create a Vault
 
 ```powershell
-curl -X POST http://localhost:3000/api/v1/vaults `
+curl -X POST http://localhost5001/api/v1/vaults `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -239,7 +239,7 @@ curl -X POST http://localhost:3000/api/v1/vaults `
 ```powershell
 $VAULT_ID="<vault-id-from-previous-response>"
 
-curl -X POST http://localhost:3000/api/v1/keys `
+curl -X POST http://localhost5001/api/v1/keys `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -262,7 +262,7 @@ Now you can store secrets using the encryption key. Hermes KMS supports **three-
 ```powershell
 $KEY_ID="<key-id-from-previous-response>"
 
-curl -X POST http://localhost:3000/api/v1/secrets `
+curl -X POST http://localhost5001/api/v1/secrets `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -279,7 +279,7 @@ curl -X POST http://localhost:3000/api/v1/secrets `
 #### Store Secret without Password (Uses Vault Password or Auth Only):
 
 ```powershell
-curl -X POST http://localhost:3000/api/v1/secrets `
+curl -X POST http://localhost5001/api/v1/secrets `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -294,7 +294,7 @@ curl -X POST http://localhost:3000/api/v1/secrets `
 ### List Secrets in a Vault
 
 ```powershell
-curl "http://localhost:3000/api/v1/secrets?vaultId=$VAULT_ID" `
+curl "http://localhost5001/api/v1/secrets?vaultId=$VAULT_ID" `
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -329,7 +329,7 @@ Response (metadata only, no values):
 ```powershell
 $SECRET_ID="<secret-id-from-create-response>"
 
-curl -X POST http://localhost:3000/api/v1/secrets/$SECRET_ID/reveal `
+curl -X POST http://localhost5001/api/v1/secrets/$SECRET_ID/reveal `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -340,7 +340,7 @@ curl -X POST http://localhost:3000/api/v1/secrets/$SECRET_ID/reveal `
 #### Reveal Secret with Vault Password (if vault has password but secret doesn't):
 
 ```powershell
-curl -X POST http://localhost:3000/api/v1/secrets/$SECRET_ID/reveal `
+curl -X POST http://localhost5001/api/v1/secrets/$SECRET_ID/reveal `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -351,7 +351,7 @@ curl -X POST http://localhost:3000/api/v1/secrets/$SECRET_ID/reveal `
 #### Reveal Secret (Auth Only - no passwords required):
 
 ```powershell
-curl -X POST http://localhost:3000/api/v1/secrets/$SECRET_ID/reveal `
+curl -X POST http://localhost5001/api/v1/secrets/$SECRET_ID/reveal `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{}'
@@ -378,7 +378,7 @@ Response:
 ### Update a Secret (Creates New Version)
 
 ```powershell
-curl -X PUT http://localhost:3000/api/v1/secrets/$SECRET_ID `
+curl -X PUT http://localhost5001/api/v1/secrets/$SECRET_ID `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -390,7 +390,7 @@ curl -X PUT http://localhost:3000/api/v1/secrets/$SECRET_ID `
 ### Get Secret Version History
 
 ```powershell
-curl http://localhost:3000/api/v1/secrets/$SECRET_ID/versions `
+curl http://localhost5001/api/v1/secrets/$SECRET_ID/versions `
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -420,7 +420,7 @@ Response:
 ### Delete a Secret
 
 ```powershell
-curl -X DELETE http://localhost:3000/api/v1/secrets/$SECRET_ID `
+curl -X DELETE http://localhost5001/api/v1/secrets/$SECRET_ID `
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -435,7 +435,7 @@ The system still supports direct encryption/decryption using keys:
 ```powershell
 $KEY_ID="<key-id-from-previous-response>"
 
-curl -X POST http://localhost:3000/api/v1/keys/$KEY_ID/encrypt `
+curl -X POST http://localhost5001/api/v1/keys/$KEY_ID/encrypt `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -456,7 +456,7 @@ Response:
 ### Decrypt Data
 
 ```powershell
-curl -X POST http://localhost:3000/api/v1/keys/$KEY_ID/decrypt `
+curl -X POST http://localhost5001/api/v1/keys/$KEY_ID/decrypt `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -d '{
@@ -517,11 +517,11 @@ yarn prisma migrate reset
 
 ### Port Already in Use
 
-If port 3000, 5432, or 8200 is already in use:
+If port 5001, 5432, or 8200 is already in use:
 
 ```powershell
 # Find process using port
-netstat -ano | findstr :3000
+netstat -ano | findstr 5001
 
 # Kill process
 taskkill /PID <process-id> /F
