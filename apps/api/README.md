@@ -349,14 +349,6 @@ See `IMPLEMENTATION_PROGRESS.md` for detailed implementation status.
 - Audit logging service
 - Core server setup
 
-### In Progress 🚧
-
-- Authentication controllers and routes
-- Vault management endpoints
-- Key management endpoints
-- User management endpoints
-- Organization management endpoints
-
 ### Planned 📋
 
 - Email verification
