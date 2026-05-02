@@ -28,6 +28,11 @@ import {
 } from "./lib/secret-handlers.js";
 import { setRuntimeState } from "./lib/runtime.js";
 
+// Provide a fallback for __VERSION__ when running from source (e.g. in tests)
+if (typeof __VERSION__ === "undefined") {
+  (globalThis as any).__VERSION__ = "0.0.0-dev";
+}
+
 interface GlobalOptions {
   json?: boolean;
   output?: "json" | "table" | "plain" | "raw";

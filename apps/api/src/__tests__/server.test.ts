@@ -1,25 +1,22 @@
 import { describe, it, expect, jest } from "@jest/globals";
 
 // Mocking in ESM requires jest.unstable_mockModule before any imports that might use the module
-jest.unstable_mockModule("@hermit/logger", () => ({
-  log: {
+jest.unstable_mockModule("@hermit/logger", () => {
+  const logMock = {
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
     debug: jest.fn(),
     http: jest.fn(),
-  },
-  httpLogStream: {
-    write: jest.fn(),
-  },
-  default: {
-    error: jest.fn(),
-    warn: jest.fn(),
-    info: jest.fn(),
-    http: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
+  };
+  return {
+    log: logMock,
+    httpLogStream: {
+      write: jest.fn(),
+    },
+    default: logMock, // default is the winston instance, but for tests we can use the same mock
+  };
+});
 
 jest.unstable_mockModule("@hermit/vault-client", () => ({
   createVaultService: () => ({
@@ -29,22 +26,23 @@ jest.unstable_mockModule("@hermit/vault-client", () => ({
   }),
 }));
 
-jest.unstable_mockModule("../services/prisma.service", () => ({
-  __esModule: true,
-  default: () => ({
+jest.unstable_mockModule("../services/prisma.service", () => {
+  const prismaMock = {
     $on: jest.fn(),
     $connect: jest.fn(),
     $disconnect: jest.fn(),
     $queryRaw: jest.fn(),
-  }),
-  checkDatabaseConnection: async () => true,
-  getPrismaClient: () => ({
-    $on: jest.fn(),
-    $connect: jest.fn(),
-    $disconnect: jest.fn(),
-    $queryRaw: jest.fn(),
-  }),
-}));
+  };
+  const getPrismaClient = () => prismaMock;
+  return {
+    __esModule: true,
+    default: getPrismaClient,
+    getPrismaClient,
+    checkDatabaseConnection: async () => true,
+    disconnectPrisma: async () => undefined,
+    prisma: prismaMock,
+  };
+});
 
 import supertest from "supertest";
 

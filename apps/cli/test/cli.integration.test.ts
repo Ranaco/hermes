@@ -6,7 +6,7 @@ import { spawn } from "node:child_process";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 
-const cliEntry = path.resolve("dist/index.js");
+const cliEntry = path.resolve("src/index.ts");
 
 interface ServerState {
   loginCount: number;
@@ -220,7 +220,7 @@ interface RunCliOptions {
 
 function runCli(args: string[], options: RunCliOptions = {}): Promise<{ code: number | null, stdout: string, stderr: string }> {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [cliEntry, ...args], {
+    const child = spawn(process.execPath, ["--import", "tsx", cliEntry, ...args], {
       cwd: path.resolve("."),
       env: {
         ...process.env,
