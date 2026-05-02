@@ -4,12 +4,13 @@ import path from "node:path";
 import os from "node:os";
 import { spawn } from "node:child_process";
 import http from "node:http";
+import type { AddressInfo } from "node:net";
 
 const cliEntry = path.resolve("dist/index.js");
 
 interface ServerState {
   loginCount: number;
-  createdSecrets: any[];
+  createdSecrets: Record<string, unknown>[];
   lastLoginBody: any;
 }
 
@@ -21,15 +22,15 @@ function createServerState(): ServerState {
   };
 }
 
-function jsonResponse(response: http.ServerResponse, statusCode: number, data: any) {
+function jsonResponse(response: http.ServerResponse, statusCode: number, data: unknown) {
   response.writeHead(statusCode, { "content-type": "application/json" });
   response.end(JSON.stringify(data));
 }
 
 function collectBody(request: http.IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
-    const chunks: any[] = [];
-    request.on("data", (chunk) => chunks.push(chunk));
+    const chunks: Uint8Array[] = [];
+    request.on("data", (chunk: Uint8Array) => chunks.push(chunk));
     request.on("end", () => {
       if (chunks.length === 0) {
         resolve({});
@@ -49,7 +50,7 @@ async function startFakeHermitServer() {
   const state = createServerState();
 
   const server = http.createServer(async (request, response) => {
-    const url = new URL(request.url!, "http://127.0.0.1");
+    const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
 
     if (request.method === "POST" && url.pathname === "/api/v1/auth/login") {
       const body = await collectBody(request);
@@ -171,7 +172,7 @@ async function startFakeHermitServer() {
     }
 
     if (request.method === "POST" && url.pathname === "/api/v1/secrets") {
-      const body = await collectBody(request);
+      const body = await collectBody(request) as Record<string, unknown>;
       state.createdSecrets.push(body);
       jsonResponse(response, 200, {
         success: true,
@@ -193,8 +194,11 @@ async function startFakeHermitServer() {
     });
   });
 
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve as any));
-  const address = server.address() as any;
+  await new Promise<void>((resolve) => {
+    server.listen(0, "127.0.0.1", () => resolve());
+  });
+
+  const address = server.address() as AddressInfo;
   const baseUrl = `http://127.0.0.1:${address.port}/api/v1`;
 
   return {
@@ -202,12 +206,19 @@ async function startFakeHermitServer() {
     baseUrl,
     state,
     async close() {
-      await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve(undefined))));
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
     },
   };
 }
 
-function runCli(args: string[], options: any = {}): Promise<{ code: number | null, stdout: string, stderr: string }> {
+interface RunCliOptions {
+  env?: Record<string, string>;
+  stdin?: string;
+}
+
+function runCli(args: string[], options: RunCliOptions = {}): Promise<{ code: number | null, stdout: string, stderr: string }> {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [cliEntry, ...args], {
       cwd: path.resolve("."),
@@ -219,11 +230,11 @@ function runCli(args: string[], options: any = {}): Promise<{ code: number | nul
       windowsHide: true,
     });
 
-    const stdout: any[] = [];
-    const stderr: any[] = [];
+    const stdout: Uint8Array[] = [];
+    const stderr: Uint8Array[] = [];
 
-    child.stdout.on("data", (chunk) => stdout.push(chunk));
-    child.stderr.on("data", (chunk) => stderr.push(chunk));
+    child.stdout.on("data", (chunk: Uint8Array) => stdout.push(chunk));
+    child.stderr.on("data", (chunk: Uint8Array) => stderr.push(chunk));
     child.on("error", reject);
     child.on("close", (code) => {
       resolve({
@@ -233,10 +244,12 @@ function runCli(args: string[], options: any = {}): Promise<{ code: number | nul
       });
     });
 
-    if (options.stdin) {
+    if (options.stdin && child.stdin) {
       child.stdin.write(options.stdin);
     }
-    child.stdin.end();
+    if (child.stdin) {
+      child.stdin.end();
+    }
   });
 }
 
@@ -263,8 +276,8 @@ async function findFiles(rootDir: string, targetName: string): Promise<string[]>
 
 describe("cli integration", () => {
   let tempRoot: string;
-  let fakeServer: any;
-  let baseEnv: any;
+  let fakeServer: Awaited<ReturnType<typeof startFakeHermitServer>>;
+  let baseEnv: Record<string, string>;
 
   beforeAll(async () => {
     tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "hermit-cli-test-"));
