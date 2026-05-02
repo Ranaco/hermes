@@ -9,7 +9,7 @@
     "build": "tsup",
     "check-types": "tsc --noEmit",
     "lint": "eslint src/",
-    "test": "jest --detectOpenHandles"
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles"
   },
   "dependencies": {
     "@hermit/prisma": "*",
