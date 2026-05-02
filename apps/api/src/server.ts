@@ -4,7 +4,6 @@
  */
 
 import express, { type Express, type Request, type RequestHandler, type Response } from "express";
-import { json, urlencoded } from "body-parser";
 import morgan from "morgan";
 import compression from "compression";
 import cookieParser from "cookie-parser";
@@ -51,8 +50,8 @@ export const createServer = (): Express => {
 
   // Request parsing middleware
   app.use(compression() as unknown as RequestHandler); // Compress responses
-  app.use(json({ limit: "1mb" })); // Parse JSON bodies
-  app.use(urlencoded({ extended: true, limit: "1mb" })); // Parse URL-encoded bodies
+  app.use(express.json({ limit: "1mb" })); // Parse JSON bodies
+  app.use(express.urlencoded({ extended: true, limit: "1mb" })); // Parse URL-encoded bodies
   app.use(cookieParser()); // Parse cookies
 
   // Logging middleware

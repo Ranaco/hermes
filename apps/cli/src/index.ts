@@ -28,6 +28,11 @@ import {
 } from "./lib/secret-handlers.js";
 import { setRuntimeState } from "./lib/runtime.js";
 
+// __VERSION__ is injected by the build system or test runner
+declare global {
+  const __VERSION__: string;
+}
+
 interface GlobalOptions {
   json?: boolean;
   output?: "json" | "table" | "plain" | "raw";

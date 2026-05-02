@@ -37,9 +37,11 @@
     "@hermit/typescript-config": "*",
     "@jest/globals": "^29.7.0",
     "@types/node": "^22.15.3",
+    "@types/jest": "^29.5.12",
     "bunchee": "^6.4.0",
     "eslint": "^9.38.0",
     "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
     "typescript": "5.8.2"
   },
   "dependencies": {

@@ -1,14 +1,20 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { spawn } from "node:child_process";
 import http from "node:http";
+import type { AddressInfo } from "node:net";
 
-const cliEntry = path.resolve("dist/index.js");
+const cliEntry = path.resolve("src/index.ts");
 
-function createServerState() {
+interface ServerState {
+  loginCount: number;
+  createdSecrets: Record<string, unknown>[];
+  lastLoginBody: Record<string, unknown> | null;
+}
+
+function createServerState(): ServerState {
   return {
     loginCount: 0,
     createdSecrets: [],
@@ -16,15 +22,15 @@ function createServerState() {
   };
 }
 
-function jsonResponse(response, statusCode, data) {
+function jsonResponse(response: http.ServerResponse, statusCode: number, data: unknown) {
   response.writeHead(statusCode, { "content-type": "application/json" });
   response.end(JSON.stringify(data));
 }
 
-function collectBody(request) {
+function collectBody(request: http.IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
-    const chunks = [];
-    request.on("data", (chunk) => chunks.push(chunk));
+    const chunks: Uint8Array[] = [];
+    request.on("data", (chunk: Uint8Array) => chunks.push(chunk));
     request.on("end", () => {
       if (chunks.length === 0) {
         resolve({});
@@ -44,7 +50,7 @@ async function startFakeHermitServer() {
   const state = createServerState();
 
   const server = http.createServer(async (request, response) => {
-    const url = new URL(request.url, "http://127.0.0.1");
+    const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
 
     if (request.method === "POST" && url.pathname === "/api/v1/auth/login") {
       const body = await collectBody(request);
@@ -166,7 +172,7 @@ async function startFakeHermitServer() {
     }
 
     if (request.method === "POST" && url.pathname === "/api/v1/secrets") {
-      const body = await collectBody(request);
+      const body = await collectBody(request) as Record<string, unknown>;
       state.createdSecrets.push(body);
       jsonResponse(response, 200, {
         success: true,
@@ -188,8 +194,11 @@ async function startFakeHermitServer() {
     });
   });
 
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  const address = server.address();
+  await new Promise<void>((resolve) => {
+    server.listen(0, "127.0.0.1", () => resolve());
+  });
+
+  const address = server.address() as AddressInfo;
   const baseUrl = `http://127.0.0.1:${address.port}/api/v1`;
 
   return {
@@ -197,14 +206,22 @@ async function startFakeHermitServer() {
     baseUrl,
     state,
     async close() {
-      await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
     },
   };
 }
 
-function runCli(args, options = {}) {
+interface RunCliOptions {
+  env?: Record<string, string>;
+  stdin?: string;
+}
+
+function runCli(args: string[], options: RunCliOptions = {}): Promise<{ code: number | null, stdout: string, stderr: string }> {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [cliEntry, ...args], {
+    const defineVersionPath = path.resolve("test/define-version.js");
+    const child = spawn(process.execPath, ["--import", "tsx", "--import", defineVersionPath, cliEntry, ...args], {
       cwd: path.resolve("."),
       env: {
         ...process.env,
@@ -214,11 +231,11 @@ function runCli(args, options = {}) {
       windowsHide: true,
     });
 
-    const stdout = [];
-    const stderr = [];
+    const stdout: Uint8Array[] = [];
+    const stderr: Uint8Array[] = [];
 
-    child.stdout.on("data", (chunk) => stdout.push(chunk));
-    child.stderr.on("data", (chunk) => stderr.push(chunk));
+    child.stdout.on("data", (chunk: Uint8Array) => stdout.push(chunk));
+    child.stderr.on("data", (chunk: Uint8Array) => stderr.push(chunk));
     child.on("error", reject);
     child.on("close", (code) => {
       resolve({
@@ -228,17 +245,19 @@ function runCli(args, options = {}) {
       });
     });
 
-    if (options.stdin) {
+    if (options.stdin && child.stdin) {
       child.stdin.write(options.stdin);
     }
-    child.stdin.end();
+    if (child.stdin) {
+      child.stdin.end();
+    }
   });
 }
 
-async function findFiles(rootDir, targetName) {
-  const matches = [];
+async function findFiles(rootDir: string, targetName: string): Promise<string[]> {
+  const matches: string[] = [];
 
-  async function walk(currentDir) {
+  async function walk(currentDir: string) {
     const entries = await fs.readdir(currentDir, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = path.join(currentDir, entry.name);
@@ -256,37 +275,48 @@ async function findFiles(rootDir, targetName) {
   return matches;
 }
 
-await test("cli integration", { concurrency: 1 }, async (t) => {
-  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "hermit-cli-test-"));
-  const fakeServer = await startFakeHermitServer();
+describe("cli integration", () => {
+  let tempRoot: string;
+  let fakeServer: Awaited<ReturnType<typeof startFakeHermitServer>>;
+  let baseEnv: Record<string, string>;
 
-  const baseEnv = {
-    APPDATA: tempRoot,
-    LOCALAPPDATA: tempRoot,
-    USERPROFILE: tempRoot,
-    HOME: tempRoot,
-    FORCE_COLOR: "0",
-  };
+  beforeAll(async () => {
+    tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "hermit-cli-test-"));
+    fakeServer = await startFakeHermitServer();
 
-  await t.test("shorthand login uses the CLI device-aware auth flow", async () => {
+    baseEnv = {
+      APPDATA: tempRoot,
+      LOCALAPPDATA: tempRoot,
+      USERPROFILE: tempRoot,
+      HOME: tempRoot,
+      FORCE_COLOR: "0",
+    };
+  });
+
+  afterAll(async () => {
+    if (fakeServer) await fakeServer.close();
+    if (tempRoot) await fs.rm(tempRoot, { recursive: true, force: true });
+  });
+
+  it("shorthand login uses the CLI device-aware auth flow", async () => {
     const result = await runCli(
       ["login", "-s", fakeServer.baseUrl, "-e", "user@example.com", "-p", "secret", "--json"],
       { env: baseEnv },
     );
 
-    assert.equal(result.code, 0, result.stderr);
+    expect(result.code).toBe(0);
     const payload = JSON.parse(result.stdout);
-    assert.equal(payload.success, true);
-    assert.equal(payload.user.email, "user@example.com");
-    assert.equal(fakeServer.state.lastLoginBody.clientType, "CLI");
-    assert.ok(fakeServer.state.lastLoginBody.cliPublicKey);
-    assert.ok(fakeServer.state.lastLoginBody.hardwareFingerprint);
+    expect(payload.success).toBe(true);
+    expect(payload.user.email).toBe("user@example.com");
+    expect(fakeServer.state.lastLoginBody.clientType).toBe("CLI");
+    expect(fakeServer.state.lastLoginBody.cliPublicKey).toBeTruthy();
+    expect(fakeServer.state.lastLoginBody.hardwareFingerprint).toBeTruthy();
 
     const keyFiles = await findFiles(tempRoot, "store-key");
-    assert.equal(keyFiles.length, 1);
+    expect(keyFiles.length).toBe(1);
   });
 
-  await t.test("version output does not depend on a readable auth store", async () => {
+  it("version output does not depend on a readable auth store", async () => {
     const isolatedRoot = await fs.mkdtemp(path.join(os.tmpdir(), "hermit-cli-version-test-"));
     const isolatedEnv = {
       ...baseEnv,
@@ -300,20 +330,20 @@ await test("cli integration", { concurrency: 1 }, async (t) => {
       ["login", "-s", fakeServer.baseUrl, "-e", "bootstrap@example.com", "-p", "secret", "--json"],
       { env: isolatedEnv },
     );
-    assert.equal(bootstrapResult.code, 0, bootstrapResult.stderr);
+    expect(bootstrapResult.code).toBe(0);
 
     const resolvedConfigFiles = await findFiles(isolatedRoot, "config.json");
-    assert.equal(resolvedConfigFiles.length >= 1, true);
+    expect(resolvedConfigFiles.length >= 1).toBe(true);
     await fs.writeFile(resolvedConfigFiles[0], "not-json-and-not-decryptable", "utf8");
 
     const result = await runCli(["--version"], { env: isolatedEnv });
-    assert.equal(result.code, 0, result.stderr);
-    assert.match(result.stdout, /\d+\.\d+\.\d+/);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toMatch(/\d+\.\d+\.\d+/);
 
     await fs.rm(isolatedRoot, { recursive: true, force: true });
   });
 
-  await t.test("default invocation does not depend on a readable auth store", async () => {
+  it("default invocation does not depend on a readable auth store", async () => {
     const isolatedRoot = await fs.mkdtemp(path.join(os.tmpdir(), "hermit-cli-default-test-"));
     const isolatedEnv = {
       ...baseEnv,
@@ -327,53 +357,53 @@ await test("cli integration", { concurrency: 1 }, async (t) => {
       ["login", "-s", fakeServer.baseUrl, "-e", "bootstrap2@example.com", "-p", "secret", "--json"],
       { env: isolatedEnv },
     );
-    assert.equal(bootstrapResult.code, 0, bootstrapResult.stderr);
+    expect(bootstrapResult.code).toBe(0);
 
     const resolvedConfigFiles = await findFiles(isolatedRoot, "config.json");
-    assert.equal(resolvedConfigFiles.length >= 1, true);
+    expect(resolvedConfigFiles.length >= 1).toBe(true);
     await fs.writeFile(resolvedConfigFiles[0], "not-json-and-not-decryptable", "utf8");
 
     const result = await runCli([], { env: isolatedEnv });
-    assert.equal([0, 1].includes(result.code), true, result.stderr);
-    assert.match(result.stdout || result.stderr, /Usage: hermit/i);
-    assert.doesNotMatch(`${result.stdout}\n${result.stderr}`, /SyntaxError: Unexpected token/i);
+    expect([0, 1]).toContain(result.code);
+    expect(result.stdout || result.stderr).toMatch(/Usage: hermit/i);
+    expect(`${result.stdout}\n${result.stderr}`).not.toMatch(/SyntaxError: Unexpected token/i);
 
     await fs.rm(isolatedRoot, { recursive: true, force: true });
   });
 
-  await t.test("nested auth login also succeeds and persists authenticated status", async () => {
+  it("nested auth login also succeeds and persists authenticated status", async () => {
     const loginResult = await runCli(
       ["auth", "login", "-s", fakeServer.baseUrl, "-e", "user2@example.com", "-p", "secret", "--json"],
       { env: baseEnv },
     );
-    assert.equal(loginResult.code, 0, loginResult.stderr);
+    expect(loginResult.code).toBe(0);
 
     const statusResult = await runCli(["auth", "status", "--json"], { env: baseEnv });
-    assert.equal(statusResult.code, 0, statusResult.stderr);
+    expect(statusResult.code).toBe(0);
     const statusPayload = JSON.parse(statusResult.stdout);
-    assert.equal(statusPayload.authenticated, true);
-    assert.equal(statusPayload.user.email, "user2@example.com");
-    assert.equal(statusPayload.organization.name, "Acme Org");
+    expect(statusPayload.authenticated).toBe(true);
+    expect(statusPayload.user.email).toBe("user2@example.com");
+    expect(statusPayload.organization.name).toBe("Acme Org");
   });
 
-  await t.test("secret get prints the raw value to stdout in non-tty mode", async () => {
+  it("secret get prints the raw value to stdout in non-tty mode", async () => {
     const result = await runCli(["get", "DATABASE_URL", "--vault", "app-vault"], { env: baseEnv });
-    assert.equal(result.code, 0, result.stderr);
-    assert.equal(result.stdout, "postgres://db.example/hermit");
+    expect(result.code).toBe(0);
+    expect(result.stdout.trim()).toBe("postgres://db.example/hermit");
   });
 
-  await t.test("env export emits mapped environment variables as JSON", async () => {
+  it("env export emits mapped environment variables as JSON", async () => {
     const result = await runCli(["export", "--vault", "app-vault", "--format", "json"], { env: baseEnv });
-    assert.equal(result.code, 0, result.stderr);
+    expect(result.code).toBe(0);
     const payload = JSON.parse(result.stdout);
-    assert.deepEqual(payload, {
+    expect(payload).toEqual({
       DATABASE_URL: "postgres://db.example/hermit",
       API_KEY: "abc123",
       TIMEOUT: "30",
     });
   });
 
-  await t.test("secret import creates secrets from dotenv input", async () => {
+  it("secret import creates secrets from dotenv input", async () => {
     const importFile = path.join(tempRoot, "import.env");
     await fs.writeFile(importFile, "FIRST_KEY=one\nSECOND_KEY=two\n", "utf8");
 
@@ -381,25 +411,22 @@ await test("cli integration", { concurrency: 1 }, async (t) => {
       ["secret", "import", importFile, "--vault", "app-vault", "--yes", "--json"],
       { env: baseEnv },
     );
-    assert.equal(result.code, 0, result.stderr);
+    expect(result.code).toBe(0);
     const payload = JSON.parse(result.stdout);
-    assert.equal(payload.success, true);
-    assert.equal(payload.created, 2);
-    assert.equal(fakeServer.state.createdSecrets.length, 2);
-    assert.equal(fakeServer.state.createdSecrets[0].name, "FIRST_KEY");
-    assert.equal(fakeServer.state.createdSecrets[1].name, "SECOND_KEY");
+    expect(payload.success).toBe(true);
+    expect(payload.created).toBe(2);
+    expect(fakeServer.state.createdSecrets.length).toBe(2);
+    expect(fakeServer.state.createdSecrets[0].name).toBe("FIRST_KEY");
+    expect(fakeServer.state.createdSecrets[1].name).toBe("SECOND_KEY");
   });
 
-  await t.test("logout clears the persisted session", async () => {
+  it("logout clears the persisted session", async () => {
     const logoutResult = await runCli(["logout", "--json"], { env: baseEnv });
-    assert.equal(logoutResult.code, 0, logoutResult.stderr);
+    expect(logoutResult.code).toBe(0);
 
     const statusResult = await runCli(["auth", "status", "--json"], { env: baseEnv });
-    assert.equal(statusResult.code, 0, statusResult.stderr);
+    expect(statusResult.code).toBe(0);
     const statusPayload = JSON.parse(statusResult.stdout);
-    assert.equal(statusPayload.authenticated, false);
+    expect(statusPayload.authenticated).toBe(false);
   });
-
-  await fakeServer.close();
-  await fs.rm(tempRoot, { recursive: true, force: true });
 });

@@ -1,35 +1,19 @@
-import supertest from "supertest";
 import { describe, it, expect, jest } from "@jest/globals";
+import { setupMocks } from "./utils/test-utils.js";
 
-jest.mock("@hermit/logger", () => ({
-  log: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-  },
-  httpLogStream: {
-    write: jest.fn(),
-  },
-}));
+// Mocking in ESM requires jest.unstable_mockModule before any imports that might use the module
+setupMocks();
 
-jest.mock("@hermit/vault-client", () => ({
-  createVaultService: () => ({
-    initialize: async () => undefined,
-    testConnection: async () => true,
-    checkHealth: async () => ({ initialized: true }),
-  }),
-}));
+import supertest from "supertest";
 
-import { createServer } from "../server";
+// We need to dynamically import the server after mocking
+const { createServer } = await import("../server.js");
 
 describe("Server", () => {
   it("health check returns 200", async () => {
-    await supertest(createServer())
-      .get("/health")
-      .expect(200)
-      .then((res) => {
-        expect(res.ok).toBe(true);
-      });
+    const app = createServer();
+    const response = await supertest(app).get("/health");
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe("healthy");
   });
 });
