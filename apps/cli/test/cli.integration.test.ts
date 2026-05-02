@@ -11,7 +11,7 @@ const cliEntry = path.resolve("dist/index.js");
 interface ServerState {
   loginCount: number;
   createdSecrets: Record<string, unknown>[];
-  lastLoginBody: any;
+  lastLoginBody: Record<string, unknown> | null;
 }
 
 function createServerState(): ServerState {

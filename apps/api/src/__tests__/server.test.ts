@@ -1,5 +1,4 @@
 import { describe, it, expect, jest } from "@jest/globals";
-import supertest from "supertest";
 
 // Mocking in ESM requires jest.unstable_mockModule before any imports that might use the module
 jest.unstable_mockModule("@hermit/logger", () => ({
@@ -46,6 +45,8 @@ jest.unstable_mockModule("../services/prisma.service", () => ({
     $queryRaw: jest.fn(),
   }),
 }));
+
+import supertest from "supertest";
 
 // We need to dynamically import the server after mocking
 const { createServer } = await import("../server");

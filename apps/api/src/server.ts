@@ -4,8 +4,7 @@
  */
 
 import express, { type Express, type Request, type RequestHandler, type Response } from "express";
-import bodyParser from "body-parser";
-const { json, urlencoded } = bodyParser;
+import { json, urlencoded } from "body-parser";
 import morgan from "morgan";
 import compression from "compression";
 import cookieParser from "cookie-parser";
