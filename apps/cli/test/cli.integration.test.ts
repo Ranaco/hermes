@@ -220,7 +220,8 @@ interface RunCliOptions {
 
 function runCli(args: string[], options: RunCliOptions = {}): Promise<{ code: number | null, stdout: string, stderr: string }> {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ["--import", "tsx", cliEntry, ...args], {
+    const defineVersionPath = path.resolve("test/define-version.js");
+    const child = spawn(process.execPath, ["--import", "tsx", "--import", defineVersionPath, cliEntry, ...args], {
       cwd: path.resolve("."),
       env: {
         ...process.env,

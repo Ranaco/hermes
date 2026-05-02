@@ -28,9 +28,9 @@ import {
 } from "./lib/secret-handlers.js";
 import { setRuntimeState } from "./lib/runtime.js";
 
-// Provide a fallback for __VERSION__ when running from source (e.g. in tests)
-if (typeof __VERSION__ === "undefined") {
-  (globalThis as any).__VERSION__ = "0.0.0-dev";
+// __VERSION__ is injected by the build system or test runner
+declare global {
+  const __VERSION__: string;
 }
 
 interface GlobalOptions {

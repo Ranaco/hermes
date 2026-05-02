@@ -49,7 +49,7 @@
     "build:binaries": "npm run build && pkg dist/index.cjs --config package.json --out-path release/",
     "check-types": "tsc --noEmit",
     "lint": "eslint src/ --max-warnings 0",
-    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles"
+    "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --detectOpenHandles"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.5.0",
