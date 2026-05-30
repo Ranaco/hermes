@@ -1,3 +1,23 @@
+# Comprehensive CONTRIBUTING.md Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Establish a comprehensive `CONTRIBUTING.md` that guides new contributors through setup, issue reporting, and the PR process.
+
+**Architecture:** A single Markdown file in the repository root.
+
+**Tech Stack:** Markdown.
+
+---
+
+### Task 1: Update CONTRIBUTING.md with Comprehensive Content
+
+**Files:**
+- Modify: `CONTRIBUTING.md`
+
+- [ ] **Step 1: Replace existing content with comprehensive guide**
+
+```markdown
 # Contributing to Hermit KMS
 
 Thank you for your interest in contributing to Hermit KMS! This guide covers everything you need to know to get started, from reporting bugs to submitting your first pull request.
@@ -140,3 +160,15 @@ Follow the prompts to select the affected packages and the version bump type.
 ---
 
 Thank you for contributing!
+```
+
+- [ ] **Step 2: Verify the content**
+
+Check that the links and commands are correct.
+
+- [ ] **Step 3: Commit the changes**
+
+```bash
+git add CONTRIBUTING.md
+git commit -m "docs: improve CONTRIBUTING.md with comprehensive guide"
+```
