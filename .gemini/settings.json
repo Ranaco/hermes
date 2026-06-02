@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "codec": {
+      "httpUrl": "http://localhost:3000/mcp",
+      "headers": {
+        "Authorization": "Bearer FJRc2eGg-HqHL91rtKfj7QWvjsz7It7AxoLwG5wE5gk"
+      },
+      "trust": true
+    }
+  }
+}
