@@ -13,11 +13,13 @@ import { runCommand as secretRunCommand } from "./commands/run.js";
 import { secretCommand } from "./commands/secret.js";
 import { teamCommand } from "./commands/team.js";
 import { vaultCommand } from "./commands/vault.js";
+import { hailCommand } from "./commands/hail.js";
 import { whoamiCommand } from "./commands/whoami.js";
 import { runCommand } from "./lib/command-helpers.js";
 import { handleLogin, handleLogout, type LoginOptions } from "./lib/auth-handlers.js";
 import { resolveConfiguredServerUrl } from "./lib/config.js";
 import { handleGroupTree } from "./lib/group-handlers.js";
+import { handleHail } from "./lib/hail-handlers.js";
 import {
   handleSecretDelete,
   handleSecretGet,
@@ -78,6 +80,7 @@ program.addCommand(initCommand);
 program.addCommand(orgCommand);
 program.addCommand(teamCommand);
 program.addCommand(vaultCommand);
+program.addCommand(hailCommand);
 program.addCommand(keyCommand);
 program.addCommand(groupCommand);
 program.addCommand(secretCommand);
