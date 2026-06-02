@@ -47,6 +47,8 @@ async function startFakeHermitServer() {
           vaults: [
             { id: "vault-1", name: "vault-one", organizationId: "org-1" },
             { id: "vault-2", name: "vault-two", organizationId: "org-1" },
+            { id: "vault-paginated", name: "vault-paginated", organizationId: "org-1" },
+            { id: "vault-fail", name: "vault-fail", organizationId: "org-1" },
           ],
         },
       });
@@ -55,6 +57,38 @@ async function startFakeHermitServer() {
 
     if (request.method === "GET" && url.pathname === "/api/v1/secrets") {
       const vaultId = url.searchParams.get("vaultId");
+      if (vaultId === "vault-fail") {
+        jsonResponse(response, 500, { success: false, error: "Server Error" });
+        return;
+      }
+      const page = parseInt(url.searchParams.get("page") || "1");
+      const limit = parseInt(url.searchParams.get("limit") || "100");
+
+      if (vaultId === "vault-paginated") {
+        if (page === 1) {
+          jsonResponse(response, 200, {
+            success: true,
+            data: {
+              secrets: Array.from({ length: limit }, (_, i) => ({
+                id: `s-${i}`,
+                name: `Secret ${i}`,
+                valueType: "STRING",
+                updatedAt: "2026-03-01T00:00:00.000Z",
+              })),
+            },
+          });
+        } else {
+          jsonResponse(response, 200, {
+            success: true,
+            data: {
+              secrets: [
+                { id: "s-last", name: "Last Secret", valueType: "STRING", updatedAt: "2026-03-01T00:00:00.000Z" },
+              ],
+            },
+          });
+        }
+        return;
+      }
       if (vaultId === "vault-1") {
         jsonResponse(response, 200, {
           success: true,
@@ -150,7 +184,7 @@ test("hail command", async (t) => {
     const payload = JSON.parse(result.stdout);
     assert.equal(payload.success, true);
     assert.equal(payload.organization.name, "Acme Org");
-    assert.equal(payload.vaults.length, 2);
+    assert.equal(payload.vaults.length, 3); // vault-fail should be omitted if it failed
     
     const v1 = payload.vaults.find(v => v.name === "vault-one");
     assert.equal(v1.secrets.length, 1);
@@ -159,6 +193,13 @@ test("hail command", async (t) => {
     const v2 = payload.vaults.find(v => v.name === "vault-two");
     assert.equal(v2.secrets.length, 1);
     assert.equal(v2.secrets[0].name, "S2");
+
+    const vPaginated = payload.vaults.find(v => v.name === "vault-paginated");
+    assert.equal(vPaginated.secrets.length, 101); // 100 on page 1 + 1 on page 2
+    assert.ok(vPaginated.secrets.find(s => s.name === "Last Secret"));
+
+    const vFail = payload.vaults.find(v => v.name === "vault-fail");
+    assert.equal(vFail, undefined);
   });
 
   await t.test("hail displays data in text mode", async () => {
