@@ -11,15 +11,22 @@ export async function handleHail(): Promise<void> {
 
   try {
     const vaults = await sdk.getVaults(organization.id);
-    const allData = await Promise.all(
-      vaults.map(async (vault) => {
-        const secrets = await sdk.getSecrets(vault.id, { cliScope: true });
-        return {
-          ...vault,
-          secrets,
-        };
-      }),
-    );
+    const allData = [];
+    const BATCH_SIZE = 5;
+
+    for (let i = 0; i < vaults.length; i += BATCH_SIZE) {
+      const batch = vaults.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(
+        batch.map(async (vault) => {
+          const secrets = await sdk.getSecrets(vault.id, { cliScope: true });
+          return {
+            ...vault,
+            secrets,
+          };
+        }),
+      );
+      allData.push(...batchResults);
+    }
 
     status.succeed(`Retrieved data from ${vaults.length} vaults`);
 

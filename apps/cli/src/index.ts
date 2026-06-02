@@ -19,7 +19,6 @@ import { runCommand } from "./lib/command-helpers.js";
 import { handleLogin, handleLogout, type LoginOptions } from "./lib/auth-handlers.js";
 import { resolveConfiguredServerUrl } from "./lib/config.js";
 import { handleGroupTree } from "./lib/group-handlers.js";
-import { handleHail } from "./lib/hail-handlers.js";
 import {
   handleSecretDelete,
   handleSecretGet,
