@@ -47,3 +47,8 @@ apps/cli/release/
 
 # Generated nginx config (built from template by deploy.sh)
 nginx/conf.d/hermit.conf
+
+# Codec execution artifacts
+.codec-mcp.json
+.gemini/
+.codec-dry-run.md
