@@ -258,6 +258,7 @@ When working in Hermit, preserve these project-level rules:
 - [`README.md`](/home/astar/Code/web/hermit/README.md)
 - [`AGENTS.md`](/home/astar/Code/web/hermit/AGENTS.md)
 - [`docs/quickstart.md`](/home/astar/Code/web/hermit/docs/quickstart.md)
+- [`docs/hermit-comparative-report.md`](/home/astar/Code/web/hermit/docs/hermit-comparative-report.md)
 - [`docs/features/iam-policy-engine.md`](/home/astar/Code/web/hermit/docs/features/iam-policy-engine.md)
 - [`docs/features/organization_system.md`](/home/astar/Code/web/hermit/docs/features/organization_system.md)
 - [`docs/features/one-time-secret-sharing.md`](/home/astar/Code/web/hermit/docs/features/one-time-secret-sharing.md)

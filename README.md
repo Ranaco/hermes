@@ -95,6 +95,7 @@ For detailed setup instructions, see [Quick Start Guide](./docs/quickstart.md).
 ### Documentation
 
 - [Hermit Overview](./docs/hermit.md)
+- [Comparative Analysis & Advantages](./docs/hermit-comparative-report.md)
 - [Architecture Overview](./docs/features/organization_system.md)
 - [Frontend Guide](./docs/frontend/guide.md)
 - [Bug Fixes](./docs/changelog/fixes.md)
