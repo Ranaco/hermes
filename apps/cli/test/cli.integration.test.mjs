@@ -390,6 +390,18 @@ await test("cli integration", { concurrency: 1 }, async (t) => {
     assert.equal(fakeServer.state.createdSecrets[1].name, "SECOND_KEY");
   });
 
+  await t.test("listAll lists all vaults and keys in the organization", async () => {
+    const result = await runCli(["listAll", "--json"], { env: baseEnv });
+    assert.equal(result.code, 0, result.stderr);
+    const payload = JSON.parse(result.stdout);
+    assert.ok(payload.vaults);
+    assert.equal(payload.vaults.length, 1);
+    assert.equal(payload.vaults[0].name, "app-vault");
+    assert.ok(payload.vaults[0].keys);
+    assert.equal(payload.vaults[0].keys.length, 1);
+    assert.equal(payload.vaults[0].keys[0].name, "default-key");
+  });
+
   await t.test("logout clears the persisted session", async () => {
     const logoutResult = await runCli(["logout", "--json"], { env: baseEnv });
     assert.equal(logoutResult.code, 0, logoutResult.stderr);
