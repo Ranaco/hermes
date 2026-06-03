@@ -6,6 +6,7 @@ import { envCommand } from "./commands/env.js";
 import { secretExportCommand } from "./commands/export.js";
 import { useCommand } from "./commands/use.js";
 import { groupCommand } from "./commands/group.js";
+import { hailCommand } from "./commands/hail.js";
 import { initCommand } from "./commands/init.js";
 import { keyCommand } from "./commands/key.js";
 import { orgCommand } from "./commands/org.js";
@@ -88,6 +89,7 @@ program.addCommand(secretExportCommand);
 program.addCommand(useCommand);
 program.addCommand(currentCommand);
 program.addCommand(whoamiCommand);
+program.addCommand(hailCommand);
 
 program
   .command("login")
