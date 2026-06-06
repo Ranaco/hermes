@@ -111,6 +111,11 @@ const config = {
     maxExpiry: parseInt(process.env.SHARE_MAX_EXPIRY || "2592000000", 10),
     maxRedemptionAttempts: parseInt(process.env.SHARE_MAX_ATTEMPTS || "3", 10),
   },
+
+  clerk: {
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY || "",
+    secretKey: process.env.CLERK_SECRET_KEY || "",
+  },
 } as const;
 
 if (config.app.env === "production") {
