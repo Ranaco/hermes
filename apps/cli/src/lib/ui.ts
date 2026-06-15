@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import figlet from "figlet";
 import { getRuntimeState, isInteractiveMode, isJsonMode, isQuiet, isRawMode, setRuntimeState } from "./runtime.js";
+import { COPYRIGHT_NOTICE } from "./metadata.js";
 
 const ESCAPE = String.fromCharCode(27);
 const ANSI_PATTERN = new RegExp(`${ESCAPE}\\[[0-9;]*m`, "g");
@@ -205,7 +206,14 @@ function chalkRef() {
   return createChalk();
 }
 
-export const COPYRIGHT_NOTICE = "© Ranaco";
+export function hexToRgb(hex: string): [number, number, number] {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [
+    parseInt(result[1], 16),
+    parseInt(result[2], 16),
+    parseInt(result[3], 16)
+  ] : [0, 0, 0];
+}
 
 export interface Theme {
   primary: string;
@@ -354,12 +362,11 @@ interface WaveColors {
 }
 
 function getWaveColors(): WaveColors {
-  // Simple hex to rgb conversion for the wave if needed, 
-  // but for now we'll stick to fixed values or derive them
+  const theme = getActiveTheme();
   return {
-    peak: [255, 255, 255],
-    mid: [148, 163, 184],
-    dim: [71, 85, 105],
+    peak: hexToRgb(theme.primary),
+    mid: hexToRgb(theme.brand),
+    dim: hexToRgb(theme.dim),
   };
 }
 
@@ -549,9 +556,7 @@ export function panel(
   const titleValue = renderTitle(title, Math.max(1, layout.innerWidth - 2));
   const titleText = `─ ${titleValue} `;
   const top = borderColor(`  ┌${titleText}${"─".repeat(Math.max(0, layout.width - 4 - visibleLength(titleText)))}┐`);
-  const copyright = ` ${COPYRIGHT_NOTICE} `;
-  const bottomFiller = "─".repeat(Math.max(0, layout.width - 4 - visibleLength(copyright)));
-  const bottom = borderColor(`  └${bottomFiller}${copyright}┘`);
+  const bottom = borderColor(`  └${"─".repeat(Math.max(0, layout.width - 4))}┘`);
 
   console.log(top);
   for (const row of rows) {
@@ -623,9 +628,7 @@ export function cards(items: CardItem[], opts: { width?: number; labelWidth?: nu
         renderPanelLine(line, layout, colors.dim);
       }
     }
-    const copyright = ` ${COPYRIGHT_NOTICE} `;
-    const bottomFiller = "─".repeat(Math.max(0, layout.width - 4 - visibleLength(copyright)));
-    console.log(colors.dim(`  └${bottomFiller}${copyright}┘`));
+    console.log(colors.dim(`  └${"─".repeat(Math.max(0, layout.width - 4))}┘`));
     console.log();
   }
 }

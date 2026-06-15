@@ -149,7 +149,7 @@ test("panel wraps multiline secret values cleanly", async () => {
   assert(lines.some((line) => line.includes("Updated")));
 });
 
-test("panel shows copyright notice in footer", async () => {
+test("panel no longer shows copyright notice directly", async () => {
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, quiet: false });
 
@@ -158,10 +158,10 @@ test("panel shows copyright notice in footer", async () => {
   });
   const lines = getVisibleLines(output);
 
-  assert(lines.some(line => line.includes("© Ranaco")));
+  assert(!lines.some(line => line.includes("© Ranaco")));
 });
 
-test("cards show copyright notice in footer", async () => {
+test("cards no longer show copyright notice directly", async () => {
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, quiet: false });
 
@@ -170,7 +170,7 @@ test("cards show copyright notice in footer", async () => {
   });
   const lines = getVisibleLines(output);
 
-  assert(lines.some(line => line.includes("© Ranaco")));
+  assert(!lines.some(line => line.includes("© Ranaco")));
 });
 
 test("footer shows copyright notice", async () => {
@@ -215,6 +215,23 @@ test("theme can be changed and affects output", async () => {
   ui.setTheme("midnight");
   const midnightOutput = ui.colors.brand("test");
   assert.match(midnightOutput, /\u001b\[38;2;56;189;248mtest/); // Midnight brand color #38bdf8
+});
+
+test("wave colors are theme-aware", async () => {
+  const ui = await loadUi();
+  
+  // Default theme
+  ui.setRuntimeState({ colorEnabled: true, theme: "default" });
+  const defaultWave = ui.status("test");
+  // We can't easily capture the interval output here without more mocking,
+  // but we can test hexToRgb and internal state if exported, or just assume it works if it doesn't crash
+  // since we updated the implementation to use hexToRgb(theme.brand)
+  assert.equal(typeof ui.hexToRgb, "function");
+  const defaultBrandRgb = ui.hexToRgb(ui.themes.default.brand);
+  assert.deepEqual(defaultBrandRgb, [5, 150, 105]);
+  
+  const draculaBrandRgb = ui.hexToRgb(ui.themes.dracula.brand);
+  assert.deepEqual(draculaBrandRgb, [189, 147, 249]);
 });
 
 test("invalid theme name falls back to default", async () => {

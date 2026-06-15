@@ -14,7 +14,7 @@ import { secretCommand } from "./commands/secret.js";
 import { teamCommand } from "./commands/team.js";
 import { vaultCommand } from "./commands/vault.js";
 import { whoamiCommand } from "./commands/whoami.js";
-import { runCommand } from "./lib/command-helpers.js";
+import { runCommand, abort, CliAbortError } from "./lib/command-helpers.js";
 import { handleLogin, handleLogout, type LoginOptions } from "./lib/auth-handlers.js";
 import { resolveConfiguredServerUrl } from "./lib/config.js";
 import { handleGroupTree } from "./lib/group-handlers.js";
@@ -29,6 +29,7 @@ import {
 import { setRuntimeState } from "./lib/runtime.js";
 import * as authStore from "./lib/auth-store.js";
 import * as ui from "./lib/ui.js";
+import { COPYRIGHT_NOTICE } from "./lib/metadata.js";
 
 interface GlobalOptions {
   json?: boolean;
@@ -45,7 +46,7 @@ program
   .name("hermit")
   .description("Hermit KMS - Secure secret management from your terminal")
   .version(__VERSION__)
-  .addHelpText("afterAll", `\n${ui.COPYRIGHT_NOTICE}`)
+  .addHelpText("afterAll", `\n${COPYRIGHT_NOTICE}`)
   .addOption(new Option("-o, --output <format>", "Output format").choices(["json", "table", "plain", "raw"]))
   .option("--json", "Emit machine-readable JSON output")
   .option("-q, --quiet", "Suppress informational output")
@@ -55,6 +56,13 @@ program
 
 program.hook("preAction", (thisCommand: Command) => {
   const options = thisCommand.optsWithGlobals() as GlobalOptions;
+  
+  if (options.theme && !ui.themes[options.theme]) {
+    abort(`Invalid theme: ${options.theme}`, {
+      suggestions: [`Available themes: ${Object.keys(ui.themes).join(", ")}`],
+    });
+  }
+
   const requestedOutput = options.json ? "json" : options.output;
   const outputMode =
     requestedOutput === "json"
@@ -234,6 +242,12 @@ program
 (async () => {
   await program.parseAsync(process.argv);
 })().catch((error) => {
+  if (error instanceof CliAbortError) {
+    ui.error(error.message, error.suggestions);
+    ui.newline();
+    ui.footer();
+    process.exit(error.exitCode);
+  }
   console.error(error);
   process.exit(1);
 });
