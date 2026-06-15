@@ -41,7 +41,11 @@ export function renderData(data: unknown): void {
 
 export async function runCommand<T>(handler: () => Promise<T>): Promise<T | undefined> {
   try {
-    return await handler();
+    const result = await handler();
+    if (!isJsonMode()) {
+      ui.footer();
+    }
+    return result;
   } catch (error) {
     if (error instanceof CliAbortError) {
       if (isJsonMode()) {
@@ -53,6 +57,7 @@ export async function runCommand<T>(handler: () => Promise<T>): Promise<T | unde
       } else {
         ui.error(error.message, error.suggestions);
         ui.newline();
+        ui.footer();
       }
       process.exit(error.exitCode);
     }
@@ -63,6 +68,7 @@ export async function runCommand<T>(handler: () => Promise<T>): Promise<T | unde
     } else {
       ui.error(message);
       ui.newline();
+      ui.footer();
     }
     process.exit(1);
   }

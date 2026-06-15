@@ -210,42 +210,45 @@ export const colors = {
     return chalkRef().white(text);
   },
   primary(text: string) {
-    return chalkRef().hex("#e0e0e0")(text);
+    return chalkRef().hex("#f1f5f9")(text);
   },
   mid(text: string) {
-    return chalkRef().hex("#9ca3af")(text);
+    return chalkRef().hex("#94a3b8")(text);
   },
   dim(text: string) {
-    return chalkRef().hex("#4b5563")(text);
+    return chalkRef().hex("#475569")(text);
   },
   green(text: string) {
-    return chalkRef().hex("#4ade80")(text);
+    return chalkRef().hex("#22c55e")(text);
   },
   emerald(text: string) {
-    return chalkRef().hex("#6ee7b7")(text);
+    return chalkRef().hex("#10b981")(text);
   },
   sage(text: string) {
-    return chalkRef().hex("#6b8f71")(text);
+    return chalkRef().hex("#65a30d")(text);
   },
   cyan(text: string) {
-    return chalkRef().hex("#22d3ee")(text);
+    return chalkRef().hex("#06b6d4")(text);
   },
   amber(text: string) {
-    return chalkRef().hex("#fbbf24")(text);
+    return chalkRef().hex("#f59e0b")(text);
   },
   red(text: string) {
-    return chalkRef().hex("#f87171")(text);
+    return chalkRef().hex("#ef4444")(text);
   },
   purple(text: string) {
-    return chalkRef().hex("#a78bfa")(text);
+    return chalkRef().hex("#8b5cf6")(text);
+  },
+  brand(text: string) {
+    return chalkRef().hex("#059669")(text);
   },
 };
 
 export const symbols = {
-  success: "▼",
-  error: "✗",
-  info: "◆",
-  warning: "▲",
+  success: "✓",
+  error: "✕",
+  info: "ℹ",
+  warning: "⚠",
   dot: "·",
 };
 
@@ -259,8 +262,8 @@ interface WaveColors {
 
 const defaultWaveColors: WaveColors = {
   peak: [255, 255, 255],
-  mid: [156, 163, 175],
-  dim: [75, 85, 99],
+  mid: [148, 163, 184],
+  dim: [71, 85, 105],
 };
 
 function rgb(text: string, value: [number, number, number]): string {
@@ -351,6 +354,11 @@ export function status(text: string): StatusResult {
   };
 }
 
+export function footer(): void {
+  if (isJsonMode() || isQuiet()) return;
+  console.log(`  ${colors.dim("© Ranaco")}`);
+}
+
 export async function banner(): Promise<void> {
   if (!isInteractiveMode() || isJsonMode()) {
     return;
@@ -359,13 +367,13 @@ export async function banner(): Promise<void> {
   await new Promise<void>((resolve) => {
     figlet.text("HERMIT", { font: "ANSI Shadow" }, (_err, result) => {
       if (!result) {
-        console.log(colors.sage("  HERMIT"));
+        console.log(colors.brand("  HERMIT"));
         resolve();
         return;
       }
 
       for (const line of result.split("\n")) {
-        console.log("  " + colors.sage(line));
+        console.log("  " + colors.brand(line));
       }
       console.log();
       resolve();
@@ -443,7 +451,9 @@ export function panel(
   const titleValue = renderTitle(title, Math.max(1, layout.innerWidth - 2));
   const titleText = `─ ${titleValue} `;
   const top = borderColor(`  ┌${titleText}${"─".repeat(Math.max(0, layout.width - 4 - visibleLength(titleText)))}┐`);
-  const bottom = borderColor(`  └${"─".repeat(layout.width - 4)}┘`);
+  const copyright = " Ranaco ";
+  const bottomFiller = "─".repeat(Math.max(0, layout.width - 4 - visibleLength(copyright)));
+  const bottom = borderColor(`  └${bottomFiller}${copyright}┘`);
 
   console.log(top);
   for (const row of rows) {
@@ -515,7 +525,9 @@ export function cards(items: CardItem[], opts: { width?: number; labelWidth?: nu
         renderPanelLine(line, layout, colors.dim);
       }
     }
-    console.log(colors.dim(`  └${"─".repeat(layout.width - 4)}┘`));
+    const copyright = " Ranaco ";
+    const bottomFiller = "─".repeat(Math.max(0, layout.width - 4 - visibleLength(copyright)));
+    console.log(colors.dim(`  └${bottomFiller}${copyright}┘`));
     console.log();
   }
 }
