@@ -77,7 +77,7 @@ configCommand
 
 configCommand
   .command("set-theme <name>")
-  .description("Persist the CLI color theme")
+  .description(`Persist the CLI color theme (${Object.keys(ui.themes).join(", ")})`)
   .action((name: string) =>
     runCommand(async () => {
       if (!ui.themes[name]) {
