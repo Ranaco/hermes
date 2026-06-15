@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "codec": {
+      "type": "http",
+      "url": "http://localhost:47822/mcp",
+      "headers": {
+        "Authorization": "Bearer M1stbk_ih7UDWppQUyCetgdawC5sFjTdX6j1ONirXao"
+      }
+    }
+  }
+}
