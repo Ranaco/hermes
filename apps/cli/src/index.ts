@@ -28,6 +28,7 @@ import {
 } from "./lib/secret-handlers.js";
 import { setRuntimeState } from "./lib/runtime.js";
 import * as authStore from "./lib/auth-store.js";
+import * as ui from "./lib/ui.js";
 
 interface GlobalOptions {
   json?: boolean;
@@ -44,12 +45,13 @@ program
   .name("hermit")
   .description("Hermit KMS - Secure secret management from your terminal")
   .version(__VERSION__)
+  .addHelpText("afterAll", `\n${ui.COPYRIGHT_NOTICE}`)
   .addOption(new Option("-o, --output <format>", "Output format").choices(["json", "table", "plain", "raw"]))
   .option("--json", "Emit machine-readable JSON output")
   .option("-q, --quiet", "Suppress informational output")
   .option("--non-interactive", "Disable prompts and animated output")
   .option("--no-color", "Disable terminal colors")
-  .option("--theme <name>", "Color theme (default, dracula, nord, ranaco)", authStore.getTheme());
+  .option("--theme <name>", "Color theme (default, dracula, nord, ranaco, midnight)");
 
 program.hook("preAction", (thisCommand: Command) => {
   const options = thisCommand.optsWithGlobals() as GlobalOptions;
@@ -67,12 +69,21 @@ program.hook("preAction", (thisCommand: Command) => {
               ? "plain"
               : "interactive";
 
+  let activeTheme = options.theme;
+  if (!activeTheme) {
+    try {
+      activeTheme = authStore.getTheme();
+    } catch {
+      activeTheme = "default";
+    }
+  }
+
   setRuntimeState({
     outputMode,
     nonInteractive: !!options.nonInteractive || !process.stdin.isTTY,
     colorEnabled: options.color !== false,
     quiet: !!options.quiet,
-    theme: options.theme || authStore.getTheme(),
+    theme: activeTheme,
     serverUrlOverride: resolveConfiguredServerUrl() || undefined,
   });
 });

@@ -15,13 +15,14 @@ function visibleLines(output) {
 }
 
 async function loadUi() {
-  return import("../src/lib/ui.ts");
+  return import("../dist/lib/ui.js");
 }
 
-function captureOutput(run, { columns = 60, outputMode = "interactive" } = {}) {
+function captureOutput(run, { columns = 60, outputMode = "interactive", isTTY = true } = {}) {
   const lines = [];
   const originalLog = console.log;
-  const descriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+  const colDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+  const ttyDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
 
   console.log = (...args) => {
     lines.push(args.join(" "));
@@ -32,12 +33,22 @@ function captureOutput(run, { columns = 60, outputMode = "interactive" } = {}) {
     value: columns,
   });
 
+  Object.defineProperty(process.stdout, "isTTY", {
+    configurable: true,
+    value: isTTY,
+  });
+
   return Promise.resolve()
     .then(run)
     .finally(() => {
       console.log = originalLog;
-      if (descriptor) {
-        Object.defineProperty(process.stdout, "columns", descriptor);
+      if (colDescriptor) {
+        Object.defineProperty(process.stdout, "columns", colDescriptor);
+      }
+      if (ttyDescriptor) {
+        Object.defineProperty(process.stdout, "isTTY", ttyDescriptor);
+      } else {
+        delete process.stdout.isTTY;
       }
     })
     .then(() => lines.join("\n"));
@@ -168,23 +179,22 @@ test("footer shows copyright notice", async () => {
 
   const output = await captureOutput(() => {
     ui.footer();
-  });
+  }, { isTTY: true });
   const lines = getVisibleLines(output);
 
   assert(lines.some(line => line.includes("© Ranaco")));
 });
 
-test("footer shows copyright notice even in plain mode non-TTY", async () => {
+test("footer does not show copyright notice when not a TTY", async () => {
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "plain", colorEnabled: false, quiet: false });
-  // We don't easily mock process.stdout.isTTY but we removed the check in ui.ts
 
   const output = await captureOutput(() => {
     ui.footer();
-  });
+  }, { isTTY: false });
   const lines = getVisibleLines(output);
 
-  assert(lines.some(line => line.includes("© Ranaco")));
+  assert(!lines.some(line => line.includes("© Ranaco")));
 });
 
 test("theme can be changed and affects output", async () => {
@@ -201,6 +211,10 @@ test("theme can be changed and affects output", async () => {
   ui.setTheme("ranaco");
   const ranacoOutput = ui.colors.brand("test");
   assert.match(ranacoOutput, /\u001b\[38;2;16;185;129mtest/); // Ranaco brand color #10b981
+
+  ui.setTheme("midnight");
+  const midnightOutput = ui.colors.brand("test");
+  assert.match(midnightOutput, /\u001b\[38;2;56;189;248mtest/); // Midnight brand color #38bdf8
 });
 
 test("invalid theme name falls back to default", async () => {

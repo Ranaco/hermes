@@ -248,6 +248,19 @@ export const themes: Record<string, Theme> = {
     purple: "#8b5cf6",
     brand: "#10b981",
   },
+  midnight: {
+    primary: "#f8fafc",
+    mid: "#94a3b8",
+    dim: "#334155",
+    green: "#4ade80",
+    emerald: "#34d399",
+    sage: "#a3e635",
+    cyan: "#22d3ee",
+    amber: "#fbbf24",
+    red: "#f87171",
+    purple: "#c084fc",
+    brand: "#38bdf8",
+  },
   dracula: {
     primary: "#f8f8f2",
     mid: "#6272a4",
@@ -440,7 +453,7 @@ export function status(text: string): StatusResult {
 }
 
 export function footer(): void {
-  if (isJsonMode() || isQuiet() || isRawMode()) return;
+  if (isJsonMode() || isQuiet() || isRawMode() || !process.stdout.isTTY) return;
   console.log(`  ${colors.dim(COPYRIGHT_NOTICE)}`);
 }
 
