@@ -14,7 +14,7 @@ let runtimeState: CliRuntimeState = {
   nonInteractive: !process.stdin.isTTY,
   colorEnabled: process.stdout.isTTY,
   quiet: false,
-  theme: "default",
+  theme: "ranaco",
   serverUrlOverride: undefined,
 };
 

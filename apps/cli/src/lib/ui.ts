@@ -460,7 +460,7 @@ export function status(text: string): StatusResult {
 }
 
 export function footer(): void {
-  if (isJsonMode() || isQuiet() || isRawMode() || !process.stdout.isTTY) return;
+  if (isJsonMode() || isQuiet() || isRawMode()) return;
   console.log(`  ${colors.dim(COPYRIGHT_NOTICE)}`);
 }
 

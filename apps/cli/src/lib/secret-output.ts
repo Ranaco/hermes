@@ -8,6 +8,9 @@ export function renderSecretValueOutput(revealed: sdk.SecretRevealResult): void 
   }
 
   if (isRawMode() || (!process.stdout.isTTY && isPlainMode())) {
+    if (!isRawMode()) {
+      ui.setRuntimeState({ outputMode: "raw" });
+    }
     process.stdout.write(revealed.secret.value);
     return;
   }

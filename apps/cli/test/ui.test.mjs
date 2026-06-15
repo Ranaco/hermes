@@ -185,7 +185,7 @@ test("footer shows copyright notice", async () => {
   assert(lines.some(line => line.includes("© Ranaco")));
 });
 
-test("footer does not show copyright notice when not a TTY", async () => {
+test("footer shows copyright notice even when not a TTY", async () => {
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "plain", colorEnabled: false, quiet: false });
 
@@ -194,16 +194,19 @@ test("footer does not show copyright notice when not a TTY", async () => {
   }, { isTTY: false });
   const lines = getVisibleLines(output);
 
-  assert(!lines.some(line => line.includes("© Ranaco")));
+  assert(lines.some(line => line.includes("© Ranaco")));
+});
+
+test("theme defaults to ranaco", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ colorEnabled: true, theme: "ranaco" });
+  
+  const output = ui.colors.brand("test");
+  assert.match(output, /\u001b\[38;2;16;185;129mtest/); // Ranaco brand color #10b981
 });
 
 test("theme can be changed and affects output", async () => {
   const ui = await loadUi();
-  ui.setRuntimeState({ colorEnabled: true, theme: "default" });
-  
-  const defaultOutput = ui.colors.brand("test");
-  assert.match(defaultOutput, /\u001b\[38;2;5;150;105mtest/); // Default brand color #059669
-
   ui.setTheme("dracula");
   const draculaOutput = ui.colors.brand("test");
   assert.match(draculaOutput, /\u001b\[38;2;189;147;249mtest/); // Dracula brand color #bd93f9
@@ -234,11 +237,11 @@ test("wave colors are theme-aware", async () => {
   assert.deepEqual(draculaBrandRgb, [189, 147, 249]);
 });
 
-test("invalid theme name falls back to default", async () => {
+test("invalid theme name falls back to default theme values", async () => {
   const ui = await loadUi();
   ui.setRuntimeState({ colorEnabled: true, theme: "invalid-theme" });
   
   const output = ui.colors.brand("test");
-  assert.match(output, /\u001b\[38;2;5;150;105mtest/); // Default brand color #059669
+  assert.match(output, /\u001b\[38;2;5;150;105mtest/); // Default theme brand color #059669
 });
 

@@ -89,8 +89,12 @@ program.hook("preAction", (thisCommand: Command) => {
     try {
       activeTheme = authStore.getTheme();
     } catch {
-      activeTheme = "default";
+      activeTheme = "ranaco";
     }
+  }
+
+  if (!activeTheme) {
+    activeTheme = "ranaco";
   }
 
   setRuntimeState({

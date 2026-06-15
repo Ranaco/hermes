@@ -88,7 +88,7 @@ function createStore(encryptionKey: string): Conf<StoreSchema> {
         type: "string",
         default: DEFAULT_SERVER_URL,
       },
-      theme: { type: "string", default: "default" },
+      theme: { type: "string", default: "ranaco" },
       cliDevice: { type: ["object", "null"] as never, default: null },
     },
     encryptionKey,
@@ -326,7 +326,7 @@ export function clearGroup(): void {
 
 export function getTheme(): string {
   const store = getStore();
-  return store.get("theme") || "default";
+  return store.get("theme") || "ranaco";
 }
 
 export function saveTheme(theme: string): void {

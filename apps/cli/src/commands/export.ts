@@ -55,6 +55,10 @@ async function executeSecretExport(opts: SecretExportOptions): Promise<void> {
     return;
   }
 
+  if (!process.stdout.isTTY || format === "json" || format === "yaml") {
+    ui.setRuntimeState({ outputMode: "raw" });
+  }
+
   process.stdout.write(output);
 }
 
