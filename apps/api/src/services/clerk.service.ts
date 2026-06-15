@@ -6,6 +6,7 @@
 import { createClerkClient } from '@clerk/clerk-sdk-node';
 import config from '../config';
 import { log } from '@hermit/logger';
+import getPrismaClient from './prisma.service';
 
 let clerk: ReturnType<typeof createClerkClient> | null = null;
 
@@ -31,18 +32,39 @@ export function getClerkClient() {
 
 /**
  * Sync Clerk user with internal database
- * This is a placeholder for actual synchronization logic
  */
 export async function syncUserFromClerk(clerkUserId: string) {
   const clerkClient = getClerkClient();
+  const prisma = getPrismaClient();
   
   try {
     const clerkUser = await clerkClient.users.getUser(clerkUserId);
+    const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
+
+    if (!userEmail) {
+      log.error('Clerk user has no email', { clerkUserId });
+      throw new Error('Clerk user has no email');
+    }
+
+    const user = await prisma.user.upsert({
+      where: { email: userEmail },
+      update: { 
+        clerkId: clerkUserId,
+        firstName: clerkUser.firstName || undefined,
+        lastName: clerkUser.lastName || undefined,
+      },
+      create: {
+        clerkId: clerkUserId,
+        email: userEmail,
+        username: clerkUser.username || userEmail,
+        passwordHash: 'CLERK_MANAGED',
+        firstName: clerkUser.firstName || null,
+        lastName: clerkUser.lastName || null,
+        isEmailVerified: true,
+      },
+    });
     
-    // Here we would typically find or create a user in our Prisma database
-    // mapping the clerkUserId to our internal user record.
-    
-    return clerkUser;
+    return user;
   } catch (error) {
     log.error('Failed to sync user from Clerk', { clerkUserId, error });
     throw error;

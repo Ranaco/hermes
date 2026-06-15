@@ -10,7 +10,7 @@ import { verifyToken } from '@clerk/clerk-sdk-node';
 import config from '../config';
 import { verifyAccessToken } from '../utils/jwt';
 import getPrismaClient from '../services/prisma.service';
-import getClerkClient from '../services/clerk.service';
+import { getClerkClient, syncUserFromClerk } from '../services/clerk.service';
 import { validateMfaToken } from '../utils/mfa';
 import { cleanupExpiredCliNonces, registerRequestNonce } from '../utils/device';
 
@@ -71,31 +71,16 @@ export const authenticate = asyncHandler(async (req: Request, _res: Response, ne
 
         // Auto-sync user if not found but has valid Clerk token
         if (!user) {
-          const clerkClient = getClerkClient();
-          const clerkUser = await clerkClient.users.getUser(payload.sub);
-          const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
-
-          if (!userEmail) {
-            throw new AuthenticationError(ErrorCode.USER_NOT_FOUND, 'Clerk user has no email');
-          }
-
-          user = await prisma.user.upsert({
-            where: { email: userEmail },
-            update: { clerkId: payload.sub },
-            create: {
-              clerkId: payload.sub,
-              email: userEmail,
-              username: clerkUser.username || userEmail,
-              passwordHash: 'CLERK_MANAGED',
-              firstName: clerkUser.firstName,
-              lastName: clerkUser.lastName,
-            },
+          user = (await syncUserFromClerk(payload.sub)) as any;
+          // Re-fetch to include organizations
+          user = await prisma.user.findUnique({
+            where: { id: (user as any).id },
             include: {
               organizations: {
                 select: { organizationId: true }
               }
             }
-          });
+          }) as any;
         }
 
         userId = user.id;
