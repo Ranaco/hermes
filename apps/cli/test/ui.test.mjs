@@ -128,3 +128,44 @@ test("panel wraps multiline secret values cleanly", async () => {
   assert(lines.some((line) => line.includes("postgres://")));
   assert(lines.some((line) => line.includes("Updated")));
 });
+
+test("panel shows copyright notice in footer", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, quiet: false });
+
+  const lines = await captureOutput(() => {
+    ui.panel("Test Panel", [ui.text("Hello World")]);
+  });
+
+  assert(lines.some(line => line.includes("© Ranaco")));
+});
+
+test("cards show copyright notice in footer", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, quiet: false });
+
+  const lines = await captureOutput(() => {
+    ui.cards([{ id: "1", name: "Test Card", fields: [{ label: "F1", value: "V1" }] }]);
+  });
+
+  assert(lines.some(line => line.includes("© Ranaco")));
+});
+
+test("footer shows copyright notice", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, quiet: false });
+
+  const lines = await captureOutput(() => {
+    ui.footer();
+  });
+
+  assert(lines.some(line => line.includes("© Ranaco")));
+});
+
+test("theme can be changed", async () => {
+  const ui = await loadUi();
+  assert.equal(typeof ui.setTheme, "function");
+  ui.setTheme("dracula");
+  ui.setTheme("nord");
+  ui.setTheme("default");
+});

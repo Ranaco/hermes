@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import figlet from "figlet";
-import { getRuntimeState, isInteractiveMode, isJsonMode, isQuiet, setRuntimeState } from "./runtime.js";
+import { getRuntimeState, isInteractiveMode, isJsonMode, isPlainMode, isQuiet, isRawMode, setRuntimeState } from "./runtime.js";
 
 const ESCAPE = String.fromCharCode(27);
 const ANSI_PATTERN = new RegExp(`${ESCAPE}\\[[0-9;]*m`, "g");
@@ -205,42 +205,108 @@ function chalkRef() {
   return createChalk();
 }
 
+export const COPYRIGHT_NOTICE = "© Ranaco";
+
+export interface Theme {
+  primary: string;
+  mid: string;
+  dim: string;
+  green: string;
+  emerald: string;
+  sage: string;
+  cyan: string;
+  amber: string;
+  red: string;
+  purple: string;
+  brand: string;
+}
+
+export const themes: Record<string, Theme> = {
+  default: {
+    primary: "#f1f5f9",
+    mid: "#94a3b8",
+    dim: "#475569",
+    green: "#22c55e",
+    emerald: "#10b981",
+    sage: "#65a30d",
+    cyan: "#06b6d4",
+    amber: "#f59e0b",
+    red: "#ef4444",
+    purple: "#8b5cf6",
+    brand: "#059669",
+  },
+  dracula: {
+    primary: "#f8f8f2",
+    mid: "#6272a4",
+    dim: "#44475a",
+    green: "#50fa7b",
+    emerald: "#50fa7b",
+    sage: "#50fa7b",
+    cyan: "#8be9fd",
+    amber: "#ffb86c",
+    red: "#ff5555",
+    purple: "#bd93f9",
+    brand: "#bd93f9",
+  },
+  nord: {
+    primary: "#eceff4",
+    mid: "#d8dee9",
+    dim: "#4c566a",
+    green: "#a3be8c",
+    emerald: "#a3be8c",
+    sage: "#a3be8c",
+    cyan: "#88c0d0",
+    amber: "#ebcb8b",
+    red: "#bf616a",
+    purple: "#b48ead",
+    brand: "#81a1c1",
+  },
+};
+
+let activeTheme = themes.default;
+
+export function setTheme(name: string): void {
+  if (themes[name]) {
+    activeTheme = themes[name]!;
+  }
+}
+
 export const colors = {
   bright(text: string) {
     return chalkRef().white(text);
   },
   primary(text: string) {
-    return chalkRef().hex("#f1f5f9")(text);
+    return chalkRef().hex(activeTheme.primary)(text);
   },
   mid(text: string) {
-    return chalkRef().hex("#94a3b8")(text);
+    return chalkRef().hex(activeTheme.mid)(text);
   },
   dim(text: string) {
-    return chalkRef().hex("#475569")(text);
+    return chalkRef().hex(activeTheme.dim)(text);
   },
   green(text: string) {
-    return chalkRef().hex("#22c55e")(text);
+    return chalkRef().hex(activeTheme.green)(text);
   },
   emerald(text: string) {
-    return chalkRef().hex("#10b981")(text);
+    return chalkRef().hex(activeTheme.emerald)(text);
   },
   sage(text: string) {
-    return chalkRef().hex("#65a30d")(text);
+    return chalkRef().hex(activeTheme.sage)(text);
   },
   cyan(text: string) {
-    return chalkRef().hex("#06b6d4")(text);
+    return chalkRef().hex(activeTheme.cyan)(text);
   },
   amber(text: string) {
-    return chalkRef().hex("#f59e0b")(text);
+    return chalkRef().hex(activeTheme.amber)(text);
   },
   red(text: string) {
-    return chalkRef().hex("#ef4444")(text);
+    return chalkRef().hex(activeTheme.red)(text);
   },
   purple(text: string) {
-    return chalkRef().hex("#8b5cf6")(text);
+    return chalkRef().hex(activeTheme.purple)(text);
   },
   brand(text: string) {
-    return chalkRef().hex("#059669")(text);
+    return chalkRef().hex(activeTheme.brand)(text);
   },
 };
 
@@ -355,8 +421,9 @@ export function status(text: string): StatusResult {
 }
 
 export function footer(): void {
-  if (isJsonMode() || isQuiet()) return;
-  console.log(`  ${colors.dim("© Ranaco")}`);
+  if (isJsonMode() || isQuiet() || isRawMode()) return;
+  if (isPlainMode() && !process.stdout.isTTY) return;
+  console.log(`  ${colors.dim(COPYRIGHT_NOTICE)}`);
 }
 
 export async function banner(): Promise<void> {
@@ -451,7 +518,7 @@ export function panel(
   const titleValue = renderTitle(title, Math.max(1, layout.innerWidth - 2));
   const titleText = `─ ${titleValue} `;
   const top = borderColor(`  ┌${titleText}${"─".repeat(Math.max(0, layout.width - 4 - visibleLength(titleText)))}┐`);
-  const copyright = " Ranaco ";
+  const copyright = ` ${COPYRIGHT_NOTICE} `;
   const bottomFiller = "─".repeat(Math.max(0, layout.width - 4 - visibleLength(copyright)));
   const bottom = borderColor(`  └${bottomFiller}${copyright}┘`);
 
@@ -525,7 +592,7 @@ export function cards(items: CardItem[], opts: { width?: number; labelWidth?: nu
         renderPanelLine(line, layout, colors.dim);
       }
     }
-    const copyright = " Ranaco ";
+    const copyright = ` ${COPYRIGHT_NOTICE} `;
     const bottomFiller = "─".repeat(Math.max(0, layout.width - 4 - visibleLength(copyright)));
     console.log(colors.dim(`  └${bottomFiller}${copyright}┘`));
     console.log();
