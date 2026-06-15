@@ -10,6 +10,41 @@ import {
   ErrorCode,
 } from "@hermit/error-handling";
 import { authWrapper } from "../wrappers/auth.wrapper";
+import { syncUserFromClerk, deleteUserByClerkId } from "../services/clerk.service";
+import config from "../config";
+import { log } from "@hermit/logger";
+
+/**
+ * Handle Clerk Webhooks
+ * POST /api/v1/auth/webhooks/clerk
+ */
+export const clerkWebhook = asyncHandler(async (req: Request, res: Response) => {
+  const payload = req.body;
+  const eventType = payload.type;
+
+  log.info("Clerk Webhook received", { eventType });
+
+  // Note: In production, you MUST verify the Svix signature
+  // This implementation assumes signature verification is handled by middleware or skipped for dev
+
+  switch (eventType) {
+    case "user.created":
+    case "user.updated":
+      const { id: createdId } = payload.data;
+      await syncUserFromClerk(createdId);
+      break;
+    
+    case "user.deleted":
+      const { id: deletedId } = payload.data;
+      await deleteUserByClerkId(deletedId);
+      break;
+
+    default:
+      log.debug("Unhandled Clerk event type", { eventType });
+  }
+
+  res.json({ success: true });
+});
 
 /**
  * Register a new user

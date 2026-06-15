@@ -31,6 +31,16 @@ export function getClerkClient() {
 }
 
 /**
+ * Get user by Clerk ID
+ */
+export async function getUserByClerkId(clerkUserId: string) {
+  const prisma = getPrismaClient();
+  return prisma.user.findUnique({
+    where: { clerkId: clerkUserId },
+  });
+}
+
+/**
  * Sync Clerk user with internal database
  */
 export async function syncUserFromClerk(clerkUserId: string) {
@@ -64,9 +74,33 @@ export async function syncUserFromClerk(clerkUserId: string) {
       },
     });
     
+    log.info('User synced from Clerk', { userId: user.id, clerkUserId });
     return user;
   } catch (error) {
     log.error('Failed to sync user from Clerk', { clerkUserId, error });
+    throw error;
+  }
+}
+
+/**
+ * Delete user synced from Clerk
+ */
+export async function deleteUserByClerkId(clerkUserId: string) {
+  const prisma = getPrismaClient();
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+      select: { id: true }
+    });
+
+    if (user) {
+      await prisma.user.delete({
+        where: { id: user.id }
+      });
+      log.info('User deleted via Clerk sync', { userId: user.id, clerkUserId });
+    }
+  } catch (error) {
+    log.error('Failed to delete user by Clerk ID', { clerkUserId, error });
     throw error;
   }
 }

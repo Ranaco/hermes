@@ -115,6 +115,7 @@ const config = {
   clerk: {
     secretKey: readEnv("CLERK_SECRET_KEY") || "",
     publishableKey: readEnv("CLERK_PUBLISHABLE_KEY") || "",
+    webhookSecret: readEnv("CLERK_WEBHOOK_SECRET") || "",
   },
 } as const;
 

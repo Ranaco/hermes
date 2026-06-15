@@ -187,17 +187,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
-          Loading...
-        </div>
-      }
-    >
-      <LoginContent />
-    </Suspense>
-  );
-}

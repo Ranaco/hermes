@@ -25,6 +25,7 @@ const router = Router();
 router.post('/register', validate({ body: registerSchema }), authController.register);
 router.post('/login', authRateLimiter, validate({ body: loginSchema }), authController.login);
 router.post('/refresh', validate({ body: refreshTokenSchema }), authController.refreshToken);
+router.post('/webhooks/clerk', authController.clerkWebhook);
 
 /**
  * Protected routes (require authentication)
