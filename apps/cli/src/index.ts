@@ -14,7 +14,7 @@ import { secretCommand } from "./commands/secret.js";
 import { teamCommand } from "./commands/team.js";
 import { vaultCommand } from "./commands/vault.js";
 import { whoamiCommand } from "./commands/whoami.js";
-import { runCommand } from "./lib/command-helpers.js";
+import { runCommand, abort, CliAbortError } from "./lib/command-helpers.js";
 import { handleLogin, handleLogout, type LoginOptions } from "./lib/auth-handlers.js";
 import { resolveConfiguredServerUrl } from "./lib/config.js";
 import { handleGroupTree } from "./lib/group-handlers.js";
@@ -26,7 +26,10 @@ import {
   parseSecretPathArg,
   type ValueType,
 } from "./lib/secret-handlers.js";
-import { setRuntimeState } from "./lib/runtime.js";
+import { isJsonMode, setRuntimeState } from "./lib/runtime.js";
+import * as authStore from "./lib/auth-store.js";
+import * as ui from "./lib/ui.js";
+import { COPYRIGHT_NOTICE } from "./lib/metadata.js";
 
 interface GlobalOptions {
   json?: boolean;
@@ -34,6 +37,7 @@ interface GlobalOptions {
   quiet?: boolean;
   nonInteractive?: boolean;
   color?: boolean;
+  theme?: string;
 }
 
 const program = new Command();
@@ -46,10 +50,12 @@ program
   .option("--json", "Emit machine-readable JSON output")
   .option("-q, --quiet", "Suppress informational output")
   .option("--non-interactive", "Disable prompts and animated output")
-  .option("--no-color", "Disable terminal colors");
+  .option("--no-color", "Disable terminal colors")
+  .option("--theme <name>", `Color theme (${Object.keys(ui.themes).join(", ")})`);
 
 program.hook("preAction", (thisCommand: Command) => {
   const options = thisCommand.optsWithGlobals() as GlobalOptions;
+  
   const requestedOutput = options.json ? "json" : options.output;
   const outputMode =
     requestedOutput === "json"
@@ -70,6 +76,29 @@ program.hook("preAction", (thisCommand: Command) => {
     colorEnabled: options.color !== false,
     quiet: !!options.quiet,
     serverUrlOverride: resolveConfiguredServerUrl() || undefined,
+  });
+
+  if (options.theme && !ui.themes[options.theme]) {
+    abort(`Invalid theme: ${options.theme}`, {
+      suggestions: [`Available themes: ${Object.keys(ui.themes).join(", ")}`],
+    });
+  }
+
+  let activeTheme = options.theme;
+  if (!activeTheme) {
+    try {
+      activeTheme = authStore.getTheme();
+    } catch {
+      activeTheme = "ranaco";
+    }
+  }
+
+  if (!activeTheme) {
+    activeTheme = "ranaco";
+  }
+
+  setRuntimeState({
+    theme: activeTheme,
   });
 });
 
@@ -216,9 +245,35 @@ program
     runCommand(() => handleGroupTree({ vaultQuery: opts.vault, pathQuery: pathArg })),
   );
 
+function registerCopyright(cmd: Command) {
+  cmd.addHelpText("after", `\n${COPYRIGHT_NOTICE}`);
+  cmd.commands.forEach(registerCopyright);
+}
+
 (async () => {
+  registerCopyright(program);
   await program.parseAsync(process.argv);
 })().catch((error) => {
-  console.error(error);
+  if (error instanceof CliAbortError) {
+    if (isJsonMode()) {
+      ui.printJson({
+        success: false,
+        error: error.message,
+        details: error.details,
+      });
+    } else {
+      ui.error(error.message, error.suggestions);
+      ui.newline();
+      ui.footer();
+    }
+    process.exit(error.exitCode);
+  }
+
+  const message = error instanceof Error ? error.message : "Unexpected CLI error";
+  if (isJsonMode()) {
+    ui.printJson({ success: false, error: message });
+  } else {
+    console.error(error);
+  }
   process.exit(1);
 });

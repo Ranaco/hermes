@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { existsSync, writeFileSync } from "node:fs";
 import * as authStore from "../lib/auth-store.js";
-import { renderData, runCommand } from "../lib/command-helpers.js";
+import { abort, renderData, runCommand } from "../lib/command-helpers.js";
 import { generateTemplate, loadProjectConfig, validateProjectConfig } from "../lib/config.js";
 import * as ui from "../lib/ui.js";
 
@@ -71,6 +71,21 @@ configCommand
       authStore.setServerUrl(url);
       renderData({ success: true, server: url });
       ui.success(`Server set to ${url}`);
+      ui.newline();
+    }),
+  );
+
+configCommand
+  .command("set-theme <name>")
+  .description(`Persist the CLI color theme (${Object.keys(ui.themes).join(", ")})`)
+  .action((name: string) =>
+    runCommand(async () => {
+      if (!ui.themes[name]) {
+        abort(`Invalid theme "${name}". Available: ${Object.keys(ui.themes).join(", ")}`);
+      }
+      authStore.saveTheme(name);
+      renderData({ success: true, theme: name });
+      ui.success(`Theme set to ${name}`);
       ui.newline();
     }),
   );

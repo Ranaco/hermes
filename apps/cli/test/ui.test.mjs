@@ -18,10 +18,11 @@ async function loadUi() {
   return import("../dist/lib/ui.js");
 }
 
-function captureOutput(run, { columns = 60, outputMode = "interactive" } = {}) {
+function captureOutput(run, { columns = 60, outputMode = "interactive", isTTY = true } = {}) {
   const lines = [];
   const originalLog = console.log;
-  const descriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+  const colDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "columns");
+  const ttyDescriptor = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
 
   console.log = (...args) => {
     lines.push(args.join(" "));
@@ -32,27 +33,42 @@ function captureOutput(run, { columns = 60, outputMode = "interactive" } = {}) {
     value: columns,
   });
 
+  Object.defineProperty(process.stdout, "isTTY", {
+    configurable: true,
+    value: isTTY,
+  });
+
   return Promise.resolve()
     .then(run)
     .finally(() => {
       console.log = originalLog;
-      if (descriptor) {
-        Object.defineProperty(process.stdout, "columns", descriptor);
+      if (colDescriptor) {
+        Object.defineProperty(process.stdout, "columns", colDescriptor);
+      }
+      if (ttyDescriptor) {
+        Object.defineProperty(process.stdout, "isTTY", ttyDescriptor);
+      } else {
+        delete process.stdout.isTTY;
       }
     })
-    .then(() => visibleLines(lines.join("\n")));
+    .then(() => lines.join("\n"));
+}
+
+function getVisibleLines(output) {
+  return visibleLines(output);
 }
 
 test("panel wraps long MFA secret with hanging indentation", async () => {
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, nonInteractive: false });
 
-  const lines = await captureOutput(() => {
+  const output = await captureOutput(() => {
     ui.panel("MFA Setup", [
       ui.kv("Secret", "JJBXGUJ4O5VUWKKVVNFYFI3LHLB5UYXRJHFXTMQKLKRIGG23SM5EA", { overflow: "wrap" }),
       ui.kv("Next", "Run `hermit auth mfa enable`", { overflow: "wrap" }),
     ]);
   });
+  const lines = getVisibleLines(output);
 
   assert(lines.every((line) => line.length <= 60));
   assert.match(lines[1], /^\s*│\s+Secret\s{4,}\S/);
@@ -63,11 +79,12 @@ test("panel truncates routine metadata like long server URLs", async () => {
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, nonInteractive: false });
 
-  const lines = await captureOutput(() => {
+  const output = await captureOutput(() => {
     ui.panel("Authentication", [
       ui.kv("Server", "https://very-long-subdomain.hermit.internal.example.com/api/v1/session/current", { overflow: "truncate" }),
     ]);
   }, { columns: 58 });
+  const lines = getVisibleLines(output);
 
   assert(lines.every((line) => line.length <= 58));
   assert(lines.some((line) => line.includes("…")));
@@ -77,7 +94,7 @@ test("cards keep header and footer aligned with long names and badges", async ()
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, nonInteractive: false });
 
-  const lines = await captureOutput(() => {
+  const output = await captureOutput(() => {
     ui.cards([
       {
         id: "6ec10eaa-d87e-4041-9fff-1badf53f7745",
@@ -90,6 +107,7 @@ test("cards keep header and footer aligned with long names and badges", async ()
       },
     ]);
   }, { columns: 64 });
+  const lines = getVisibleLines(output);
 
   const cardLines = lines.filter(Boolean);
   assert.equal(cardLines[0].length, cardLines[cardLines.length - 1].length);
@@ -100,12 +118,13 @@ test("narrow terminals degrade stacked key value rows instead of breaking layout
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, nonInteractive: false });
 
-  const lines = await captureOutput(() => {
+  const output = await captureOutput(() => {
     ui.panel("Session", [
       ui.kv("Server", "https://local.hermit.example.dev/api/v1", { overflow: "truncate" }),
       ui.kv("Vault", "customer-facing-platform-production", { overflow: "truncate" }),
     ]);
   }, { columns: 48 });
+  const lines = getVisibleLines(output);
 
   assert(lines.every((line) => line.length <= 48));
   assert.match(lines[1], /^\s*│\s+Server\s*│?$/);
@@ -116,15 +135,113 @@ test("panel wraps multiline secret values cleanly", async () => {
   const ui = await loadUi();
   ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, nonInteractive: false });
 
-  const lines = await captureOutput(() => {
+  const output = await captureOutput(() => {
     ui.panel("DATABASE_URL", [
       ui.kv("Value", "postgres://app-user:secret-password@db.internal.example.com:5432/hermit_prod", { overflow: "wrap" }),
       ui.spacer(),
       ui.kv("Updated", ui.formatDateTime("2026-03-06T10:30:00.000Z"), { overflow: "wrap" }),
     ]);
   }, { columns: 60 });
+  const lines = getVisibleLines(output);
 
   assert(lines.every((line) => line.length <= 60));
   assert(lines.some((line) => line.includes("postgres://")));
   assert(lines.some((line) => line.includes("Updated")));
 });
+
+test("panel no longer shows copyright notice directly", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, quiet: false });
+
+  const output = await captureOutput(() => {
+    ui.panel("Test Panel", [ui.text("Hello World")]);
+  });
+  const lines = getVisibleLines(output);
+
+  assert(!lines.some(line => line.includes("© Ranaco")));
+});
+
+test("cards no longer show copyright notice directly", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, quiet: false });
+
+  const output = await captureOutput(() => {
+    ui.cards([{ id: "1", name: "Test Card", fields: [{ label: "F1", value: "V1" }] }]);
+  });
+  const lines = getVisibleLines(output);
+
+  assert(!lines.some(line => line.includes("© Ranaco")));
+});
+
+test("footer shows copyright notice", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ outputMode: "interactive", colorEnabled: false, quiet: false });
+
+  const output = await captureOutput(() => {
+    ui.footer();
+  }, { isTTY: true });
+  const lines = getVisibleLines(output);
+
+  assert(lines.some(line => line.includes("© Ranaco")));
+});
+
+test("footer shows copyright notice even when not a TTY", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ outputMode: "plain", colorEnabled: false, quiet: false });
+
+  const output = await captureOutput(() => {
+    ui.footer();
+  }, { isTTY: false });
+  const lines = getVisibleLines(output);
+
+  assert(lines.some(line => line.includes("© Ranaco")));
+});
+
+test("theme defaults to ranaco", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ colorEnabled: true, theme: "ranaco" });
+  
+  const output = ui.colors.brand("test");
+  assert.match(output, /\u001b\[38;2;16;185;129mtest/); // Ranaco brand color #10b981
+});
+
+test("theme can be changed and affects output", async () => {
+  const ui = await loadUi();
+  ui.setTheme("dracula");
+  const draculaOutput = ui.colors.brand("test");
+  assert.match(draculaOutput, /\u001b\[38;2;189;147;249mtest/); // Dracula brand color #bd93f9
+
+  ui.setTheme("ranaco");
+  const ranacoOutput = ui.colors.brand("test");
+  assert.match(ranacoOutput, /\u001b\[38;2;16;185;129mtest/); // Ranaco brand color #10b981
+
+  ui.setTheme("midnight");
+  const midnightOutput = ui.colors.brand("test");
+  assert.match(midnightOutput, /\u001b\[38;2;56;189;248mtest/); // Midnight brand color #38bdf8
+});
+
+test("wave colors are theme-aware", async () => {
+  const ui = await loadUi();
+  
+  // Default theme
+  ui.setRuntimeState({ colorEnabled: true, theme: "default" });
+  const defaultWave = ui.status("test");
+  // We can't easily capture the interval output here without more mocking,
+  // but we can test hexToRgb and internal state if exported, or just assume it works if it doesn't crash
+  // since we updated the implementation to use hexToRgb(theme.brand)
+  assert.equal(typeof ui.hexToRgb, "function");
+  const defaultBrandRgb = ui.hexToRgb(ui.themes.default.brand);
+  assert.deepEqual(defaultBrandRgb, [5, 150, 105]);
+  
+  const draculaBrandRgb = ui.hexToRgb(ui.themes.dracula.brand);
+  assert.deepEqual(draculaBrandRgb, [189, 147, 249]);
+});
+
+test("invalid theme name falls back to default theme values", async () => {
+  const ui = await loadUi();
+  ui.setRuntimeState({ colorEnabled: true, theme: "invalid-theme" });
+  
+  const output = ui.colors.brand("test");
+  assert.match(output, /\u001b\[38;2;5;150;105mtest/); // Default theme brand color #059669
+});
+

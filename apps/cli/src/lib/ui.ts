@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import figlet from "figlet";
-import { getRuntimeState, isInteractiveMode, isJsonMode, isQuiet, setRuntimeState } from "./runtime.js";
+import { getRuntimeState, isInteractiveMode, isJsonMode, isQuiet, isRawMode, setRuntimeState } from "./runtime.js";
+import { COPYRIGHT_NOTICE } from "./metadata.js";
 
 const ESCAPE = String.fromCharCode(27);
 const ANSI_PATTERN = new RegExp(`${ESCAPE}\\[[0-9;]*m`, "g");
@@ -205,47 +206,150 @@ function chalkRef() {
   return createChalk();
 }
 
+export function hexToRgb(hex: string): [number, number, number] {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [
+    parseInt(result[1], 16),
+    parseInt(result[2], 16),
+    parseInt(result[3], 16)
+  ] : [0, 0, 0];
+}
+
+export interface Theme {
+  primary: string;
+  mid: string;
+  dim: string;
+  green: string;
+  emerald: string;
+  sage: string;
+  cyan: string;
+  amber: string;
+  red: string;
+  purple: string;
+  brand: string;
+}
+
+export const themes: Record<string, Theme> = {
+  default: {
+    primary: "#f1f5f9",
+    mid: "#94a3b8",
+    dim: "#475569",
+    green: "#22c55e",
+    emerald: "#10b981",
+    sage: "#65a30d",
+    cyan: "#06b6d4",
+    amber: "#f59e0b",
+    red: "#ef4444",
+    purple: "#8b5cf6",
+    brand: "#059669",
+  },
+  ranaco: {
+    primary: "#ecfdf5",
+    mid: "#6ee7b7",
+    dim: "#064e3b",
+    green: "#10b981",
+    emerald: "#059669",
+    sage: "#34d399",
+    cyan: "#22d3ee",
+    amber: "#fbbf24",
+    red: "#f87171",
+    purple: "#c084fc",
+    brand: "#10b981",
+  },
+  midnight: {
+    primary: "#f8fafc",
+    mid: "#94a3b8",
+    dim: "#334155",
+    green: "#4ade80",
+    emerald: "#34d399",
+    sage: "#a3e635",
+    cyan: "#22d3ee",
+    amber: "#fbbf24",
+    red: "#f87171",
+    purple: "#c084fc",
+    brand: "#38bdf8",
+  },
+  dracula: {
+    primary: "#f8f8f2",
+    mid: "#6272a4",
+    dim: "#44475a",
+    green: "#50fa7b",
+    emerald: "#50fa7b",
+    sage: "#50fa7b",
+    cyan: "#8be9fd",
+    amber: "#ffb86c",
+    red: "#ff5555",
+    purple: "#bd93f9",
+    brand: "#bd93f9",
+  },
+  nord: {
+    primary: "#eceff4",
+    mid: "#d8dee9",
+    dim: "#4c566a",
+    green: "#a3be8c",
+    emerald: "#a3be8c",
+    sage: "#a3be8c",
+    cyan: "#88c0d0",
+    amber: "#ebcb8b",
+    red: "#bf616a",
+    purple: "#b48ead",
+    brand: "#81a1c1",
+  },
+};
+
+function getActiveTheme(): Theme {
+  const themeName = getRuntimeState().theme;
+  return themes[themeName] || themes.default;
+}
+
+export function setTheme(name: string): void {
+  setRuntimeState({ theme: name });
+}
+
 export const colors = {
   bright(text: string) {
     return chalkRef().white(text);
   },
   primary(text: string) {
-    return chalkRef().hex("#e0e0e0")(text);
+    return chalkRef().hex(getActiveTheme().primary)(text);
   },
   mid(text: string) {
-    return chalkRef().hex("#9ca3af")(text);
+    return chalkRef().hex(getActiveTheme().mid)(text);
   },
   dim(text: string) {
-    return chalkRef().hex("#4b5563")(text);
+    return chalkRef().hex(getActiveTheme().dim)(text);
   },
   green(text: string) {
-    return chalkRef().hex("#4ade80")(text);
+    return chalkRef().hex(getActiveTheme().green)(text);
   },
   emerald(text: string) {
-    return chalkRef().hex("#6ee7b7")(text);
+    return chalkRef().hex(getActiveTheme().emerald)(text);
   },
   sage(text: string) {
-    return chalkRef().hex("#6b8f71")(text);
+    return chalkRef().hex(getActiveTheme().sage)(text);
   },
   cyan(text: string) {
-    return chalkRef().hex("#22d3ee")(text);
+    return chalkRef().hex(getActiveTheme().cyan)(text);
   },
   amber(text: string) {
-    return chalkRef().hex("#fbbf24")(text);
+    return chalkRef().hex(getActiveTheme().amber)(text);
   },
   red(text: string) {
-    return chalkRef().hex("#f87171")(text);
+    return chalkRef().hex(getActiveTheme().red)(text);
   },
   purple(text: string) {
-    return chalkRef().hex("#a78bfa")(text);
+    return chalkRef().hex(getActiveTheme().purple)(text);
+  },
+  brand(text: string) {
+    return chalkRef().hex(getActiveTheme().brand)(text);
   },
 };
 
 export const symbols = {
-  success: "▼",
-  error: "✗",
-  info: "◆",
-  warning: "▲",
+  success: "✓",
+  error: "✕",
+  info: "ℹ",
+  warning: "⚠",
   dot: "·",
 };
 
@@ -257,11 +361,14 @@ interface WaveColors {
   dim: [number, number, number];
 }
 
-const defaultWaveColors: WaveColors = {
-  peak: [255, 255, 255],
-  mid: [156, 163, 175],
-  dim: [75, 85, 99],
-};
+function getWaveColors(): WaveColors {
+  const theme = getActiveTheme();
+  return {
+    peak: hexToRgb(theme.primary),
+    mid: hexToRgb(theme.brand),
+    dim: hexToRgb(theme.dim),
+  };
+}
 
 function rgb(text: string, value: [number, number, number]): string {
   return chalkRef().rgb(...value)(text);
@@ -275,18 +382,19 @@ function lerpColor(a: [number, number, number], b: [number, number, number], t: 
   ];
 }
 
-function renderWaveFrame(text: string, position: number, waveColors: WaveColors = defaultWaveColors): string {
+function renderWaveFrame(text: string, position: number, waveColors?: WaveColors): string {
+  const activeWaveColors = waveColors || getWaveColors();
   return text
     .split("")
     .map((char, index) => {
       const distance = Math.abs(index - position);
       if (distance === 0) {
-        return rgb(char, waveColors.peak);
+        return rgb(char, activeWaveColors.peak);
       }
       if (distance <= WAVE_WIDTH) {
-        return rgb(char, lerpColor(waveColors.peak, waveColors.mid, distance / WAVE_WIDTH));
+        return rgb(char, lerpColor(activeWaveColors.peak, activeWaveColors.mid, distance / WAVE_WIDTH));
       }
-      return rgb(char, waveColors.dim);
+      return rgb(char, activeWaveColors.dim);
     })
     .join("");
 }
@@ -351,6 +459,11 @@ export function status(text: string): StatusResult {
   };
 }
 
+export function footer(): void {
+  if (isJsonMode() || isQuiet() || isRawMode()) return;
+  console.log(`  ${colors.dim(COPYRIGHT_NOTICE)}`);
+}
+
 export async function banner(): Promise<void> {
   if (!isInteractiveMode() || isJsonMode()) {
     return;
@@ -359,13 +472,13 @@ export async function banner(): Promise<void> {
   await new Promise<void>((resolve) => {
     figlet.text("HERMIT", { font: "ANSI Shadow" }, (_err, result) => {
       if (!result) {
-        console.log(colors.sage("  HERMIT"));
+        console.log(colors.brand("  HERMIT"));
         resolve();
         return;
       }
 
       for (const line of result.split("\n")) {
-        console.log("  " + colors.sage(line));
+        console.log("  " + colors.brand(line));
       }
       console.log();
       resolve();
@@ -443,7 +556,7 @@ export function panel(
   const titleValue = renderTitle(title, Math.max(1, layout.innerWidth - 2));
   const titleText = `─ ${titleValue} `;
   const top = borderColor(`  ┌${titleText}${"─".repeat(Math.max(0, layout.width - 4 - visibleLength(titleText)))}┐`);
-  const bottom = borderColor(`  └${"─".repeat(layout.width - 4)}┘`);
+  const bottom = borderColor(`  └${"─".repeat(Math.max(0, layout.width - 4))}┘`);
 
   console.log(top);
   for (const row of rows) {
@@ -515,7 +628,7 @@ export function cards(items: CardItem[], opts: { width?: number; labelWidth?: nu
         renderPanelLine(line, layout, colors.dim);
       }
     }
-    console.log(colors.dim(`  └${"─".repeat(layout.width - 4)}┘`));
+    console.log(colors.dim(`  └${"─".repeat(Math.max(0, layout.width - 4))}┘`));
     console.log();
   }
 }
