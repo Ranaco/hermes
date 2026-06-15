@@ -3,6 +3,7 @@ import { authService, type LoginCredentials, type RegisterData } from "@/service
 import { useAuthStore } from "@/store/auth.store";
 import { useOrganizationStore } from "@/store/organization.store";
 import { toast } from "sonner";
+import { useClerk } from "@clerk/nextjs";
 
 export function useLogin() {
   const { setUser, setTokens } = useAuthStore();
@@ -46,9 +47,19 @@ export function useLogout() {
   const { logout, refreshToken } = useAuthStore();
   const clearContext = useOrganizationStore((state) => state.clearContext);
   const queryClient = useQueryClient();
+  const { signOut } = useClerk();
 
   return useMutation({
-    mutationFn: () => authService.logout(refreshToken || ""),
+    mutationFn: async () => {
+      await signOut();
+      if (refreshToken) {
+        try {
+          await authService.logout(refreshToken);
+        } catch {
+          // Ignore server logout errors when using Clerk
+        }
+      }
+    },
     onSuccess: () => {
       clearContext();
       logout();

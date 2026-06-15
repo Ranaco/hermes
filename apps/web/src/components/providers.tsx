@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { AuthGuard } from "@/components/auth-guard";
+import { ClerkProvider } from "@clerk/nextjs";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -21,17 +22,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <AuthGuard>{children}</AuthGuard>
-        <Toaster position="top-right" richColors />
-        <ReactQueryDevtools initialIsOpen={false} />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ClerkProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthGuard>{children}</AuthGuard>
+          <Toaster position="top-right" richColors />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
   );
 }

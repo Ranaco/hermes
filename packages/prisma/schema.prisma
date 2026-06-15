@@ -21,6 +21,7 @@ enum DeviceClientType {
 
 model User {
     id                         String                   @id @default(uuid())
+    clerkId                    String?                  @unique
     email                      String                   @unique
     username                   String                   @unique
     passwordHash               String
