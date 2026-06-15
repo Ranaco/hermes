@@ -2,15 +2,12 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowRight,
 } from "lucide-react";
 import { AuthShell } from "@/components/auth-shell";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useLogin, useRegister } from "@/hooks/use-auth";
+import { SignIn, SignUp } from "@clerk/nextjs";
 
 type AuthMode = "signin" | "signup";
 
@@ -21,13 +18,7 @@ const modeCopy = {
     description: "Return to your workspace.",
     asideTitle: "Welcome back.",
     asideDescription: "Pick up where you left off.",
-    submitLabel: "Sign in",
-    pendingLabel: "Signing in...",
-    switchLead: "New here?",
-    switchAction: "Create account",
     formNote: "Vault prompts happen at reveal time.",
-    introTitle: "Sign in",
-    introBody: "Use your workspace credentials.",
     checklist: [
       "Restores workspace context.",
       "Returns to protected flows.",
@@ -40,13 +31,7 @@ const modeCopy = {
     description: "Account first, then your workspace.",
     asideTitle: "Start here.",
     asideDescription: "Account first. Organization next.",
-    submitLabel: "Create account",
-    pendingLabel: "Creating account...",
-    switchLead: "Have an account?",
-    switchAction: "Sign in",
     formNote: "Next step: organization setup.",
-    introTitle: "New account",
-    introBody: "This identity owns or joins workspaces.",
     checklist: [
       "Create your identity.",
       "Name your first organization.",
@@ -61,62 +46,18 @@ const modeCopy = {
     description: string;
     asideTitle: string;
     asideDescription: string;
-    submitLabel: string;
-    pendingLabel: string;
-    switchLead: string;
-    switchAction: string;
     formNote: string;
-    introTitle: string;
-    introBody: string;
     checklist: string[];
   }
 >;
 
 function LoginContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get("returnUrl");
-
+  const returnUrl = searchParams.get("returnUrl") || "/dashboard";
   const [mode, setMode] = useState<AuthMode>("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [username, setUsername] = useState("");
 
-  const { mutate: login, isPending: isLoggingIn } = useLogin();
-  const { mutate: register, isPending: isRegistering } = useRegister();
-
-  const isBusy = isLoggingIn || isRegistering;
   const isLogin = mode === "signin";
   const copy = modeCopy[mode];
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (isLogin) {
-      login(
-        { email, password },
-        {
-          onSuccess: () => router.push(returnUrl || "/dashboard"),
-        },
-      );
-      return;
-    }
-
-    register(
-      {
-        email,
-        password,
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-        username: username || undefined,
-      },
-      {
-        onSuccess: () => router.push(returnUrl || "/onboarding"),
-      },
-    );
-  };
 
   return (
     <AuthShell
@@ -132,7 +73,7 @@ function LoginContent() {
         <div className="grid gap-4 rounded-[24px] border border-black/5 bg-background/55 p-4 dark:border-white/10 dark:bg-white/[0.03]">
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm font-semibold tracking-tight text-foreground">
-              {copy.introTitle}
+              {isLogin ? "Sign in" : "New account"}
             </p>
             <div className="shrink-0 whitespace-nowrap rounded-md border border-border bg-muted/50 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
               {isLogin ? "Return Flow" : "Setup Flow"}
@@ -176,93 +117,43 @@ function LoginContent() {
           </div>
         </div>
 
-        {returnUrl ? (
-          <div className="rounded-[22px] border border-primary/15 bg-primary/8 px-4 py-3 text-sm leading-6 text-primary">
-            You&apos;ll return to your previous page after sign-in.
-          </div>
-        ) : null}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {!isLogin ? (
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First name</Label>
-                <Input
-                  id="firstName"
-                  autoComplete="given-name"
-                  placeholder="Jane"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="h-11 rounded-2xl border-black/8 bg-background/70 shadow-none dark:border-white/10 dark:bg-white/[0.03]"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input
-                  id="lastName"
-                  autoComplete="family-name"
-                  placeholder="Doe"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="h-11 rounded-2xl border-black/8 bg-background/70 shadow-none dark:border-white/10 dark:bg-white/[0.03]"
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  autoComplete="username"
-                  placeholder="jane.doe"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="h-11 rounded-2xl border-black/8 bg-background/70 shadow-none dark:border-white/10 dark:bg-white/[0.03]"
-                />
-              </div>
-            </div>
-          ) : null}
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="operator@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-11 rounded-2xl border-black/8 bg-background/70 shadow-none dark:border-white/10 dark:bg-white/[0.03]"
-              required
+        <div className="flex justify-center">
+          {isLogin ? (
+            <SignIn 
+              routing="hash" 
+              forceRedirectUrl={returnUrl}
+              appearance={{
+                elements: {
+                  rootBox: "w-full",
+                  card: "shadow-none border-none bg-transparent p-0",
+                  headerTitle: "hidden",
+                  headerSubtitle: "hidden",
+                  socialButtonsBlockButton: "rounded-2xl border-black/8 dark:border-white/10",
+                  formButtonPrimary: "rounded-2xl h-12",
+                  formFieldInput: "rounded-2xl h-11 border-black/8 dark:border-white/10 bg-background/70",
+                  footer: "hidden"
+                }
+              }}
             />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="password">Password</Label>
-              <span className="text-xs font-medium text-muted-foreground">
-                {isLogin ? "" : "Min 8 characters"}
-              </span>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              autoComplete={isLogin ? "current-password" : "new-password"}
-              minLength={8}
-              placeholder={isLogin ? "Enter your password" : "Create a strong password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="h-11 rounded-2xl border-black/8 bg-background/70 shadow-none dark:border-white/10 dark:bg-white/[0.03]"
-              required
+          ) : (
+            <SignUp 
+              routing="hash" 
+              forceRedirectUrl="/onboarding"
+              appearance={{
+                elements: {
+                  rootBox: "w-full",
+                  card: "shadow-none border-none bg-transparent p-0",
+                  headerTitle: "hidden",
+                  headerSubtitle: "hidden",
+                  socialButtonsBlockButton: "rounded-2xl border-black/8 dark:border-white/10",
+                  formButtonPrimary: "rounded-2xl h-12",
+                  formFieldInput: "rounded-2xl h-11 border-black/8 dark:border-white/10 bg-background/70",
+                  footer: "hidden"
+                }
+              }}
             />
-          </div>
-
-          <Button
-            type="submit"
-            className="h-12 w-full rounded-2xl text-base font-medium shadow-none"
-            disabled={isBusy}
-          >
-            {isBusy ? copy.pendingLabel : copy.submitLabel}
-          </Button>
-        </form>
+          )}
+        </div>
 
         <div className="flex flex-col gap-3 border-t border-black/5 pt-5 text-sm dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
           <button
@@ -270,8 +161,8 @@ function LoginContent() {
             onClick={() => setMode(isLogin ? "signup" : "signin")}
             className="inline-flex items-center gap-2 text-left font-medium text-primary transition-colors hover:text-primary/80"
           >
-            <span>{copy.switchLead}</span>
-            <span>{copy.switchAction}</span>
+            <span>{isLogin ? "New here?" : "Have an account?"}</span>
+            <span>{isLogin ? "Create account" : "Sign in"}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
           <Link href="/" className="font-medium text-muted-foreground hover:text-foreground">

@@ -6,8 +6,11 @@
 import type { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { AuthenticationError, ErrorCode, asyncHandler } from '@hermit/error-handling';
+import { verifyToken } from '@clerk/clerk-sdk-node';
+import config from '../config';
 import { verifyAccessToken } from '../utils/jwt';
 import getPrismaClient from '../services/prisma.service';
+import { getClerkClient, syncUserFromClerk } from '../services/clerk.service';
 import { validateMfaToken } from '../utils/mfa';
 import { cleanupExpiredCliNonces, registerRequestNonce } from '../utils/device';
 
@@ -30,7 +33,7 @@ declare global {
 }
 
 /**
- * Verify JWT and attach user to request
+ * Verify JWT (Clerk or Legacy) and attach user to request
  */
 export const authenticate = asyncHandler(async (req: Request, _res: Response, next: NextFunction) => {
   // Extract token from Authorization header
@@ -43,22 +46,78 @@ export const authenticate = asyncHandler(async (req: Request, _res: Response, ne
   const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
   try {
-    // Verify token
-    const payload = verifyAccessToken(token);
+    let userId: string;
+    let email: string;
+    let organizationId: string | undefined;
+    let deviceId: string | undefined;
+    let clientType: "BROWSER" | "CLI" = "BROWSER";
+
+    // Try Clerk verification first if configured
+    if (config.clerk.secretKey) {
+      try {
+        const payload = await verifyToken(token, {
+          secretKey: config.clerk.secretKey,
+        } as any);
+
+        const prisma = getPrismaClient();
+        let user = await prisma.user.findUnique({
+          where: { clerkId: payload.sub },
+          include: {
+            organizations: {
+              select: { organizationId: true }
+            }
+          }
+        });
+
+        // Auto-sync user if not found but has valid Clerk token
+        if (!user) {
+          user = (await syncUserFromClerk(payload.sub)) as any;
+          // Re-fetch to include organizations
+          user = await prisma.user.findUnique({
+            where: { id: (user as any).id },
+            include: {
+              organizations: {
+                select: { organizationId: true }
+              }
+            }
+          }) as any;
+        }
+
+        userId = user.id;
+        email = user.email;
+        organizationId = user.organizations[0]?.organizationId;
+      } catch (clerkError) {
+        // Fallback to legacy JWT if Clerk fails (e.g. for CLI)
+        const payload = verifyAccessToken(token);
+        userId = payload.userId;
+        email = payload.email;
+        organizationId = payload.organizationId;
+        deviceId = payload.deviceId;
+        clientType = payload.clientType || "BROWSER";
+      }
+    } else {
+      // Legacy JWT only
+      const payload = verifyAccessToken(token);
+      userId = payload.userId;
+      email = payload.email;
+      organizationId = payload.organizationId;
+      deviceId = payload.deviceId;
+      clientType = payload.clientType || "BROWSER";
+    }
 
     // Attach user info to request
     req.user = {
-      id: payload.userId,
-      email: payload.email,
-      organizationId: payload.organizationId,
-      deviceId: payload.deviceId,
-      clientType: payload.clientType,
+      id: userId,
+      email: email,
+      organizationId,
+      deviceId,
+      clientType,
     };
 
     // Update context with user ID
     if (req.context) {
-      req.context.userId = payload.userId;
-      req.context.organizationId = payload.organizationId;
+      req.context.userId = userId;
+      req.context.organizationId = organizationId;
     }
 
     next();
@@ -85,6 +144,42 @@ export const optionalAuth = asyncHandler(async (req: Request, _res: Response, ne
   const token = authHeader.substring(7);
 
   try {
+    // Try Clerk first if configured
+    if (config.clerk.secretKey) {
+      try {
+        const payload = await verifyToken(token, {
+          secretKey: config.clerk.secretKey,
+        } as any);
+
+        const prisma = getPrismaClient();
+        const user = await prisma.user.findUnique({
+          where: { clerkId: payload.sub },
+          include: {
+            organizations: {
+              select: { organizationId: true }
+            }
+          }
+        });
+
+        if (user) {
+          req.user = {
+            id: user.id,
+            email: user.email,
+            organizationId: user.organizations[0]?.organizationId,
+            clientType: "BROWSER",
+          };
+
+          if (req.context) {
+            req.context.userId = user.id;
+            req.context.organizationId = user.organizations[0]?.organizationId;
+          }
+          return next();
+        }
+      } catch {
+        // Continue to legacy if Clerk fails
+      }
+    }
+
     const payload = verifyAccessToken(token);
     req.user = {
       id: payload.userId,
