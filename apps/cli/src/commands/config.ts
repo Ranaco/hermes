@@ -74,3 +74,19 @@ configCommand
       ui.newline();
     }),
   );
+
+configCommand
+  .command("set-theme <name>")
+  .description("Persist the CLI color theme")
+  .action((name: string) =>
+    runCommand(async () => {
+      if (!ui.themes[name]) {
+        ui.error(`Invalid theme "${name}". Available: ${Object.keys(ui.themes).join(", ")}`);
+        return;
+      }
+      authStore.saveTheme(name);
+      renderData({ success: true, theme: name });
+      ui.success(`Theme set to ${name}`);
+      ui.newline();
+    }),
+  );

@@ -27,6 +27,7 @@ import {
   type ValueType,
 } from "./lib/secret-handlers.js";
 import { setRuntimeState } from "./lib/runtime.js";
+import * as authStore from "./lib/auth-store.js";
 
 interface GlobalOptions {
   json?: boolean;
@@ -34,6 +35,7 @@ interface GlobalOptions {
   quiet?: boolean;
   nonInteractive?: boolean;
   color?: boolean;
+  theme?: string;
 }
 
 const program = new Command();
@@ -46,7 +48,8 @@ program
   .option("--json", "Emit machine-readable JSON output")
   .option("-q, --quiet", "Suppress informational output")
   .option("--non-interactive", "Disable prompts and animated output")
-  .option("--no-color", "Disable terminal colors");
+  .option("--no-color", "Disable terminal colors")
+  .option("--theme <name>", "Color theme (default, dracula, nord, ranaco)", authStore.getTheme());
 
 program.hook("preAction", (thisCommand: Command) => {
   const options = thisCommand.optsWithGlobals() as GlobalOptions;
@@ -69,6 +72,7 @@ program.hook("preAction", (thisCommand: Command) => {
     nonInteractive: !!options.nonInteractive || !process.stdin.isTTY,
     colorEnabled: options.color !== false,
     quiet: !!options.quiet,
+    theme: options.theme || authStore.getTheme(),
     serverUrlOverride: resolveConfiguredServerUrl() || undefined,
   });
 });

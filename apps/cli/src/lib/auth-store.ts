@@ -53,6 +53,7 @@ export interface StoreSchema {
   vault: VaultInfo | null;
   group: GroupInfo | null;
   serverUrl: string;
+  theme: string;
   cliDevice: CliDeviceInfo | null;
 }
 
@@ -62,7 +63,7 @@ const STORE_CONFIG_NAME = "config";
 const STORE_FILE_EXTENSION = "json";
 const LEGACY_ENCRYPTION_KEY = "hermit-cli-encryption-key-v1";
 const ENCRYPTION_KEY_FILE = "store-key";
-const CURRENT_SCHEMA_VERSION = 4;
+const CURRENT_SCHEMA_VERSION = 5;
 const DEFAULT_SERVER_URL = "https://hermit.ranax.co/api/v1";
 
 const configDirectory = envPaths(PROJECT_NAME, { suffix: PROJECT_SUFFIX }).config;
@@ -87,6 +88,7 @@ function createStore(encryptionKey: string): Conf<StoreSchema> {
         type: "string",
         default: DEFAULT_SERVER_URL,
       },
+      theme: { type: "string", default: "default" },
       cliDevice: { type: ["object", "null"] as never, default: null },
     },
     encryptionKey,
@@ -320,4 +322,14 @@ export function getGroup(): GroupInfo | null {
 export function clearGroup(): void {
   const store = getStore();
   store.set("group", null);
+}
+
+export function getTheme(): string {
+  const store = getStore();
+  return store.get("theme") || "default";
+}
+
+export function saveTheme(theme: string): void {
+  const store = getStore();
+  store.set("theme", theme);
 }

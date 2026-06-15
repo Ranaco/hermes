@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import figlet from "figlet";
-import { getRuntimeState, isInteractiveMode, isJsonMode, isPlainMode, isQuiet, isRawMode, setRuntimeState } from "./runtime.js";
+import { getRuntimeState, isInteractiveMode, isJsonMode, isQuiet, isRawMode, setRuntimeState } from "./runtime.js";
 
 const ESCAPE = String.fromCharCode(27);
 const ANSI_PATTERN = new RegExp(`${ESCAPE}\\[[0-9;]*m`, "g");
@@ -235,6 +235,19 @@ export const themes: Record<string, Theme> = {
     purple: "#8b5cf6",
     brand: "#059669",
   },
+  ranaco: {
+    primary: "#f1f5f9",
+    mid: "#94a3b8",
+    dim: "#475569",
+    green: "#10b981",
+    emerald: "#10b981",
+    sage: "#10b981",
+    cyan: "#06b6d4",
+    amber: "#f59e0b",
+    red: "#ef4444",
+    purple: "#8b5cf6",
+    brand: "#10b981",
+  },
   dracula: {
     primary: "#f8f8f2",
     mid: "#6272a4",
@@ -263,12 +276,13 @@ export const themes: Record<string, Theme> = {
   },
 };
 
-let activeTheme = themes.default;
+function getActiveTheme(): Theme {
+  const themeName = getRuntimeState().theme;
+  return themes[themeName] || themes.default;
+}
 
 export function setTheme(name: string): void {
-  if (themes[name]) {
-    activeTheme = themes[name]!;
-  }
+  setRuntimeState({ theme: name });
 }
 
 export const colors = {
@@ -276,37 +290,37 @@ export const colors = {
     return chalkRef().white(text);
   },
   primary(text: string) {
-    return chalkRef().hex(activeTheme.primary)(text);
+    return chalkRef().hex(getActiveTheme().primary)(text);
   },
   mid(text: string) {
-    return chalkRef().hex(activeTheme.mid)(text);
+    return chalkRef().hex(getActiveTheme().mid)(text);
   },
   dim(text: string) {
-    return chalkRef().hex(activeTheme.dim)(text);
+    return chalkRef().hex(getActiveTheme().dim)(text);
   },
   green(text: string) {
-    return chalkRef().hex(activeTheme.green)(text);
+    return chalkRef().hex(getActiveTheme().green)(text);
   },
   emerald(text: string) {
-    return chalkRef().hex(activeTheme.emerald)(text);
+    return chalkRef().hex(getActiveTheme().emerald)(text);
   },
   sage(text: string) {
-    return chalkRef().hex(activeTheme.sage)(text);
+    return chalkRef().hex(getActiveTheme().sage)(text);
   },
   cyan(text: string) {
-    return chalkRef().hex(activeTheme.cyan)(text);
+    return chalkRef().hex(getActiveTheme().cyan)(text);
   },
   amber(text: string) {
-    return chalkRef().hex(activeTheme.amber)(text);
+    return chalkRef().hex(getActiveTheme().amber)(text);
   },
   red(text: string) {
-    return chalkRef().hex(activeTheme.red)(text);
+    return chalkRef().hex(getActiveTheme().red)(text);
   },
   purple(text: string) {
-    return chalkRef().hex(activeTheme.purple)(text);
+    return chalkRef().hex(getActiveTheme().purple)(text);
   },
   brand(text: string) {
-    return chalkRef().hex(activeTheme.brand)(text);
+    return chalkRef().hex(getActiveTheme().brand)(text);
   },
 };
 
@@ -326,11 +340,15 @@ interface WaveColors {
   dim: [number, number, number];
 }
 
-const defaultWaveColors: WaveColors = {
-  peak: [255, 255, 255],
-  mid: [148, 163, 184],
-  dim: [71, 85, 105],
-};
+function getWaveColors(): WaveColors {
+  // Simple hex to rgb conversion for the wave if needed, 
+  // but for now we'll stick to fixed values or derive them
+  return {
+    peak: [255, 255, 255],
+    mid: [148, 163, 184],
+    dim: [71, 85, 105],
+  };
+}
 
 function rgb(text: string, value: [number, number, number]): string {
   return chalkRef().rgb(...value)(text);
@@ -344,18 +362,19 @@ function lerpColor(a: [number, number, number], b: [number, number, number], t: 
   ];
 }
 
-function renderWaveFrame(text: string, position: number, waveColors: WaveColors = defaultWaveColors): string {
+function renderWaveFrame(text: string, position: number, waveColors?: WaveColors): string {
+  const activeWaveColors = waveColors || getWaveColors();
   return text
     .split("")
     .map((char, index) => {
       const distance = Math.abs(index - position);
       if (distance === 0) {
-        return rgb(char, waveColors.peak);
+        return rgb(char, activeWaveColors.peak);
       }
       if (distance <= WAVE_WIDTH) {
-        return rgb(char, lerpColor(waveColors.peak, waveColors.mid, distance / WAVE_WIDTH));
+        return rgb(char, lerpColor(activeWaveColors.peak, activeWaveColors.mid, distance / WAVE_WIDTH));
       }
-      return rgb(char, waveColors.dim);
+      return rgb(char, activeWaveColors.dim);
     })
     .join("");
 }
@@ -422,7 +441,6 @@ export function status(text: string): StatusResult {
 
 export function footer(): void {
   if (isJsonMode() || isQuiet() || isRawMode()) return;
-  if (isPlainMode() && !process.stdout.isTTY) return;
   console.log(`  ${colors.dim(COPYRIGHT_NOTICE)}`);
 }
 

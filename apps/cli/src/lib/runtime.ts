@@ -5,6 +5,7 @@ export interface CliRuntimeState {
   nonInteractive: boolean;
   colorEnabled: boolean;
   quiet: boolean;
+  theme: string;
   serverUrlOverride?: string;
 }
 
@@ -13,6 +14,7 @@ let runtimeState: CliRuntimeState = {
   nonInteractive: !process.stdin.isTTY,
   colorEnabled: process.stdout.isTTY,
   quiet: false,
+  theme: "default",
   serverUrlOverride: undefined,
 };
 
