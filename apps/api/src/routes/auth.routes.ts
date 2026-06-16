@@ -1,5 +1,8 @@
 /**
  * Authentication Routes
+ * 
+ * @deprecated Local authentication is being phased out in favor of Clerk.
+ * New implementations should use Clerk-based authentication.
  */
 
 import { Router } from 'express';

@@ -10,7 +10,7 @@
       "backend": [
         {
           "url_pattern": "/health",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -21,7 +21,7 @@
       "backend": [
         {
           "url_pattern": "/status",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -32,7 +32,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/info",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -43,7 +43,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/register",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -54,7 +54,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/login",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -65,7 +65,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/refresh",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -76,7 +76,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/logout",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -87,7 +87,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/mfa/setup",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -98,7 +98,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/mfa/enable",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -109,7 +109,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/mfa/disable",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -120,7 +120,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/devices",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -131,7 +131,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/auth/devices/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -142,7 +142,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/users/password/reset-request",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -153,7 +153,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/users/password/reset",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -164,7 +164,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/users/verify-email",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -175,7 +175,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/users/me",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -186,7 +186,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/users/me",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -197,7 +197,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/users/me/password",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -208,7 +208,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/users/resend-verification",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -219,7 +219,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/users/me",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -230,7 +230,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/organizations",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -241,7 +241,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/organizations",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -252,7 +252,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/organizations/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -263,7 +263,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/organizations/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -274,7 +274,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/organizations/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -285,7 +285,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/organizations/{id}/invitations",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -296,7 +296,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/organizations/{id}/members/{userId}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -307,7 +307,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/organizations/{id}/members/{userId}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -318,7 +318,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/vaults",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -329,7 +329,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/vaults",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -340,7 +340,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/vaults/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -351,7 +351,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/vaults/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -362,7 +362,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/vaults/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -373,7 +373,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/vaults/{id}/permissions/users",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -384,7 +384,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/vaults/{id}/permissions/users/{userId}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -395,7 +395,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -406,7 +406,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -417,7 +417,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -428,7 +428,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys/{id}/rotate",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -439,7 +439,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -450,7 +450,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys/{id}/encrypt",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -461,7 +461,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys/{id}/decrypt",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -472,7 +472,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys/{id}/encrypt/batch",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -483,7 +483,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/keys/{id}/decrypt/batch",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -494,7 +494,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/secrets",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -505,7 +505,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/secrets",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -516,7 +516,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/secrets/{id}/reveal",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -527,7 +527,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/secrets/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -538,7 +538,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/secrets/{id}",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
@@ -549,7 +549,7 @@
       "backend": [
         {
           "url_pattern": "/api/v1/secrets/{id}/versions",
-          "host": ["http://192.168.1.8:5001"],
+          "host": ["http://api:5001"],
           "encoding": "json"
         }
       ]
