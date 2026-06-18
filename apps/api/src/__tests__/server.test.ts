@@ -32,4 +32,20 @@ describe("Server", () => {
         expect(res.ok).toBe(true);
       });
   });
+
+  it("health check reports the documented status payload", async () => {
+    const res = await supertest(createServer())
+      .get("/health")
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    expect(res.body).toMatchObject({
+      status: "healthy",
+      environment: expect.any(String),
+    });
+    expect(typeof res.body.uptime).toBe("number");
+    expect(res.body.uptime).toBeGreaterThanOrEqual(0);
+    expect(() => new Date(res.body.timestamp).toISOString()).not.toThrow();
+    expect(new Date(res.body.timestamp).toISOString()).toBe(res.body.timestamp);
+  });
 });
