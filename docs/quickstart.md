@@ -138,7 +138,7 @@ You should see:
 ### Health Check
 
 ```powershell
-curl http://localhost5001/health
+curl http://localhost:5001/health
 ```
 
 Response:
